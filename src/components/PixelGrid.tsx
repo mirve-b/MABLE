@@ -1,13 +1,5 @@
 import { useEffect, useMemo, type CSSProperties } from "react";
-import {
-  CELL_PITCH,
-  COLS,
-  CROSS_HEIGHT,
-  CROSS_WIDTH,
-  GRID_HEIGHT,
-  GRID_WIDTH,
-  ROWS,
-} from "../grid/constants";
+import { COLS, ROWS } from "../grid/constants";
 import { isCellOn, type MaskName } from "../grid/masks";
 import { usePixelGlitches } from "../hooks/usePixelGlitches";
 
@@ -82,11 +74,7 @@ export function PixelGrid({
   }, [phase, onLeft]);
 
   return (
-    <div
-      className={`pixel-grid is-${phase}`}
-      style={{ width: GRID_WIDTH, height: GRID_HEIGHT }}
-      aria-hidden="true"
-    >
+    <div className={`pixel-grid is-${phase}`} aria-hidden="true">
       {CELLS.map(({ index, col, row }) => {
         const on = isCellOn(mask, col, row);
         const glitch = glitches[index];
@@ -107,10 +95,8 @@ export function PixelGrid({
               .join(" ")}
             style={
               {
-                width: CROSS_WIDTH,
-                height: CROSS_HEIGHT,
-                left: col * CELL_PITCH,
-                top: row * CELL_PITCH,
+                "--col": col,
+                "--row": row,
                 "--intro-delay": `${timing.inDelay}s`,
                 "--intro-duration": `${timing.inDur}s`,
                 "--out-delay": `${timing.outDelay}s`,

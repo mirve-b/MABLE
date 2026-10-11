@@ -9,7 +9,6 @@ export function SplashScreen() {
   const [phase, setPhase] = useState<GridPhase>("enter");
 
   const mask: MaskName = MASK_ORDER[maskIndex]!;
-  const showTagline = mask === "mable" && phase !== "leave";
 
   const handleEntered = useCallback(() => {
     setPhase("idle");
@@ -38,14 +37,15 @@ export function SplashScreen() {
             onLeft={handleLeft}
           />
         </div>
-        <motion.p
-          className="splash-tagline"
+        <motion.footer
+          className="splash-footer"
           initial={{ opacity: 0 }}
-          animate={{ opacity: showTagline ? 1 : 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1.1, ease: "easeOut" }}
         >
-          A Design X Code Studio!
-        </motion.p>
+          <p className="splash-tagline">DESIGN X CODE STUDIO BY MIRVÉ</p>
+          <p className="splash-whimsy">A LITTLE WHIMSY PLEASE</p>
+        </motion.footer>
       </div>
     </main>
   );
