@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { motion } from "motion/react";
 import { MASK_ORDER, type MaskName } from "../grid/masks";
+import { CursorFx, useCursorFx } from "./CursorFx";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
 export function SplashScreen() {
@@ -9,6 +10,7 @@ export function SplashScreen() {
   const [phase, setPhase] = useState<GridPhase>("enter");
 
   const mask: MaskName = MASK_ORDER[maskIndex]!;
+  const cursor = useCursorFx();
 
   const handleEntered = useCallback(() => {
     setPhase("idle");
@@ -20,13 +22,19 @@ export function SplashScreen() {
     setPhase("enter");
   }, []);
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    cursor.burstAt(event);
     if (phase !== "idle") return;
     setPhase("leave");
   };
 
   return (
-    <main className="splash" onClick={handleClick}>
+    <main
+      className="splash"
+      onClick={handleClick}
+      onPointerMove={cursor.onPointerMove}
+      onPointerLeave={cursor.onPointerLeave}
+    >
       <div className="splash-cluster">
         <div className="splash-grid-frame">
           <PixelGrid
@@ -47,6 +55,13 @@ export function SplashScreen() {
           <p className="splash-whimsy">A LITTLE WHIMSY PLEASE</p>
         </motion.footer>
       </div>
+      <CursorFx
+        x={cursor.x}
+        y={cursor.y}
+        visible={cursor.visible}
+        bursts={cursor.bursts}
+        onBurstDone={cursor.onBurstDone}
+      />
     </main>
   );
 }
