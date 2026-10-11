@@ -12,6 +12,27 @@
   }
 }
 
+html.export-mode {
+  --grid-scale: 2;
+}
+
+html.export-mode,
+html.export-mode body,
+html.export-mode #root {
+  width: 842px;
+  height: 442px;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+  cursor: none;
+}
+
+.export-stage {
+  width: 842px;
+  height: 442px;
+  background: #000;
+}
+
 *,
 *::before,
 *::after {

@@ -18,3 +18,5 @@ dist-ssr
 .idea
 
 grid-ref.png
+export/raw
+export/preview
