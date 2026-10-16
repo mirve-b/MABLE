@@ -1,15 +1,13 @@
 :root {
-  --grid-scale: 1.85;
+  --grid-scale: min(
+    1.85,
+    calc((100vw - 32px) / 421px),
+    calc((100dvh - 32px) / 221px)
+  );
   --page-bg: #000000;
   --tagline: #8d8086;
   --pixel: #d7bdc7;
   color-scheme: dark;
-}
-
-@media (max-width: 600px) {
-  :root {
-    --grid-scale: min(0.82, calc((100vw - 32px) / 421px));
-  }
 }
 
 html.export-mode {

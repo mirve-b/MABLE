@@ -16,6 +16,6 @@ export const CROSS_HEIGHT = 9;
  */
 export const CELL_PITCH = 10;
 
+/** Max scale; actual size is min(this, viewport / grid). */
 export const DESKTOP_SCALE = 1.85;
-export const MOBILE_SCALE = 0.82;
 export const MOBILE_BREAKPOINT = 600;
