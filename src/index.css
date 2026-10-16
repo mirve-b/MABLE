@@ -2,7 +2,7 @@
   --grid-scale: min(
     1.85,
     calc((100vw - 32px) / 421px),
-    calc((100dvh - 32px) / 221px)
+    calc((100svh - 32px) / 221px)
   );
   --page-bg: #000000;
   --tagline: #8d8086;
@@ -42,6 +42,7 @@ body,
 #root {
   margin: 0;
   min-height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -53,7 +54,7 @@ body {
 
 .splash {
   position: relative;
-  min-height: 100dvh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
   padding: 0 16px;
@@ -68,6 +69,7 @@ body {
   flex-direction: column;
   align-items: center;
   width: min(100%, calc(421px * var(--grid-scale)));
+  min-width: 0;
 }
 
 .splash-grid-frame {
@@ -75,23 +77,28 @@ body {
   height: calc(221px * var(--grid-scale));
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .pixel-grid {
-  position: relative;
-  width: calc(421px * var(--grid-scale));
-  height: calc(221px * var(--grid-scale));
-  margin: 0 auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 421px;
+  height: 221px;
+  transform: translate(-50%, -50%) scale(var(--grid-scale));
+  transform-origin: center center;
   pointer-events: none;
+  will-change: transform;
 }
 
 .pixel-cross {
   position: absolute;
   display: block;
-  width: calc(10px * var(--grid-scale));
-  height: calc(9px * var(--grid-scale));
-  left: calc(var(--col) * 10px * var(--grid-scale));
-  top: calc(var(--row) * 10px * var(--grid-scale));
+  width: 10px;
+  height: 9px;
+  left: calc(var(--col) * 10px);
+  top: calc(var(--row) * 10px);
   opacity: 0;
   background-color: var(--pixel);
   -webkit-mask-image: url("./assets/pixel.svg");
