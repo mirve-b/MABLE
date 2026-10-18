@@ -68,13 +68,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(100%, calc(421px * var(--grid-scale)));
   min-width: 0;
 }
 
 .splash-grid-frame {
-  width: 100%;
-  height: calc(221px * var(--grid-scale));
   position: relative;
   overflow: hidden;
   min-width: 0;
@@ -90,6 +87,7 @@ body {
   transform-origin: center center;
   pointer-events: none;
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .pixel-cross {

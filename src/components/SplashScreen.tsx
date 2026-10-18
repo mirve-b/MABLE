@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { MASK_ORDER, type MaskName } from "../grid/masks";
 import { CursorFx, useCursorFx } from "./CursorFx";
+import { useSmoothGridScale } from "../hooks/useSmoothGridScale";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
 export function SplashScreen() {
@@ -11,6 +12,9 @@ export function SplashScreen() {
 
   const mask: MaskName = MASK_ORDER[maskIndex]!;
   const cursor = useCursorFx();
+  const clusterRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  useSmoothGridScale(clusterRef, frameRef);
 
   const handleEntered = useCallback(() => {
     setPhase("idle");
@@ -35,8 +39,8 @@ export function SplashScreen() {
       onPointerMove={cursor.onPointerMove}
       onPointerLeave={cursor.onPointerLeave}
     >
-      <div className="splash-cluster">
-        <div className="splash-grid-frame">
+      <div className="splash-cluster" ref={clusterRef}>
+        <div className="splash-grid-frame" ref={frameRef}>
           <PixelGrid
             key={`${mask}-${generation}`}
             mask={mask}
