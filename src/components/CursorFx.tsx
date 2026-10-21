@@ -1,4 +1,4 @@
-import { useState, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useState, type MouseEvent, type PointerEvent } from "react";
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { PALETTE } from "../grid/colors";
 
@@ -117,6 +117,31 @@ export function useCursorFx() {
   };
 
   const onPointerLeave = () => setVisible(false);
+
+  useEffect(() => {
+    const move = (event: globalThis.PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      x.set(event.clientX);
+      y.set(event.clientY);
+      setVisible(true);
+    };
+    const leave = () => setVisible(false);
+    const click = (event: globalThis.MouseEvent) => {
+      setBursts((current) => [
+        ...current,
+        ...spawnStars(event.clientX, event.clientY),
+      ]);
+    };
+
+    window.addEventListener("pointermove", move);
+    document.documentElement.addEventListener("pointerleave", leave);
+    window.addEventListener("click", click);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      document.documentElement.removeEventListener("pointerleave", leave);
+      window.removeEventListener("click", click);
+    };
+  }, [x, y]);
 
   const burstAt = (event: MouseEvent<HTMLElement>) => {
     setBursts((current) => [
