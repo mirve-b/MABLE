@@ -48,15 +48,12 @@ body,
 body {
   background: var(--page-bg);
   color: var(--pixel);
-  font-family: Outfit, sans-serif;
-  font-weight: 300;
+  font-family: Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 .splash {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
+  position: relative;
   min-height: 100svh;
   display: grid;
   place-items: center;
@@ -65,14 +62,7 @@ body {
   overflow: hidden;
   cursor: none;
   user-select: none;
-  transition: opacity 0.7s ease;
 }
-
-.splash.is-dismissing {
-  opacity: 0;
-  pointer-events: none;
-}
-
 
 .splash-cluster {
   display: flex;
@@ -213,7 +203,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 60;
+  z-index: 40;
   width: 22px;
   height: 20px;
   margin-left: -11px;
@@ -249,7 +239,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 50;
+  z-index: 30;
   pointer-events: none;
   display: block;
   transform: translate(-50%, -50%);
@@ -260,152 +250,9 @@ body {
   line-height: 0;
 }
 
-html.is-site,
-html.is-site body,
-html.is-site #root,
-html.is-site * {
-  cursor: none;
-}
-
-html.is-site,
-html.is-site body,
-html.is-site #root {
-  overflow: visible;
-  height: auto;
-}
-
-html.is-site {
-  scroll-behavior: auto;
-}
-
-.stage {
-  position: relative;
-}
-
-.intro {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #000;
-  overflow: hidden;
-  cursor: none;
-}
-
-.intro-glints {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.intro-glint {
-  position: absolute;
-  display: block;
-  opacity: 0;
-  background-color: #fe63a0;
-  -webkit-mask-image: url("./assets/pixel.svg");
-  mask-image: url("./assets/pixel.svg");
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-}
-
-.intro-besties {
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-  top: 50%;
-  width: min(700px, 64vw);
-  height: auto;
-  max-height: 72vh;
-  transform: translate(-58%, -50%);
-  object-fit: contain;
-  opacity: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.intro-mark {
-  position: relative;
-  z-index: 3;
-  width: min(380px, 50vw);
-}
-
-.intro .splash-grid-frame {
-  overflow: visible;
-}
-
-.intro-lift {
-  width: 100%;
-}
-
-.intro-letter,
-.intro-space {
-  display: inline-block;
-}
-
-.intro-space {
-  width: 0.42em;
-}
-
-.intro-tagline {
-  margin: calc(var(--mark-scale, 0.67) * -64px) 0 0;
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  text-align: center;
-  color: #d9d9d9;
-}
-
-.scroll-cue {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: 28px;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  margin: 0;
-  transform: translateX(-50%);
-  color: #d9d9d9;
-  font-family: Outfit, sans-serif;
-  font-weight: 300;
-  font-size: 15px;
-  letter-spacing: 0.12em;
-  pointer-events: none;
-}
-
-.scroll-cue svg {
-  display: block;
-  width: 22px;
-  height: 22px;
-  overflow: visible;
-}
-
-.scroll-cue path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 @media (hover: none), (pointer: coarse) {
-  html.is-site,
-  html.is-site body,
-  html.is-site #root,
-  html.is-site *,
-  .splash,
-  .intro {
-    cursor: auto;
+  .splash {
+    cursor: pointer;
   }
 
   .glitch-cursor {
@@ -413,3 +260,53 @@ html.is-site {
   }
 }
 
+.splash-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.splash-tagline,
+.splash-whimsy {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: var(--tagline);
+  white-space: nowrap;
+}
+
+.splash-whimsy {
+  text-align: right;
+}
+
+@media (min-width: 601px) {
+  .splash-footer {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    bottom: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .splash-footer {
+    justify-content: center;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .splash-tagline {
+    font-size: 11px;
+    text-align: center;
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .splash-whimsy {
+    display: none;
+  }
+}
