@@ -46,9 +46,9 @@ export function SplashScreen() {
       onPointerLeave={cursor.onPointerLeave}
     >
       <motion.header className="splash-chrome splash-chrome-top" {...chromeFade}>
-        <p>Launching December ’26</p>
-        <p>2026 / M-001</p>
-        <p>Independent Studio / 001</p>
+        <p className="chrome-main is-rose">Launching December ’26</p>
+        <p className="chrome-main">2026 / M-001</p>
+        <p className="chrome-main">Independent Studio / 001</p>
       </motion.header>
 
       <div className="splash-cluster" ref={clusterRef}>
@@ -65,12 +65,12 @@ export function SplashScreen() {
 
       <motion.footer className="splash-chrome splash-chrome-bottom" {...chromeFade}>
         <p>
-          Design × Code Studio
-          <span>Built by Mirvé</span>
+          <span className="chrome-main">Design × Code Studio</span>
+          <span className="chrome-sub">Built by Mirvé</span>
         </p>
         <p className="is-end">
-          A little whimsy, please.
-          <span>A collective no to corporate!</span>
+          <span className="chrome-main is-rose">A little whimsy, please.</span>
+          <span className="chrome-sub is-mute">’ collective no to corporate!</span>
         </p>
       </motion.footer>
 
