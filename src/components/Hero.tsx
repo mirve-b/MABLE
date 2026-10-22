@@ -191,6 +191,7 @@ export function Hero() {
       </svg>
 
       <img className="spark spark-a" src={star} alt="" />
+      <img className="spark spark-e" src={star} alt="" />
       <img className="spark spark-b" src={star} alt="" />
       <img className="spark spark-c" src={star} alt="" />
       <img className="spark spark-d" src={star} alt="" />

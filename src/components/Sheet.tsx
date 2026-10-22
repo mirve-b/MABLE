@@ -1,6 +1,9 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { MASK_ORDER } from "../grid/masks";
+import { GridSlot } from "./GridSlot";
+import type { GridPhase } from "./PixelGrid";
 import aboutTape from "../assets/deco/about-tape.webp";
 import ashoo from "../assets/deco/ashoo.webp";
 import bubble from "../assets/deco/bubble.webp";
@@ -21,11 +24,52 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PIXELS = ["#FE63A0", "#FFC1DC", "#D7BDC7", "#D9D9D9", "#A3B8C8", "#D5D0AD"];
 
+function FooterMark() {
+  const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<GridPhase>("enter");
+  const reduce = useRef(false);
+
+  useLayoutEffect(() => {
+    reduce.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce.current) setPhase("idle");
+  }, []);
+
+  return (
+    <button
+      type="button"
+      className="footer-mark"
+      aria-label="Mable. Tap to change the mark."
+      onClick={() => {
+        if (phase === "leave") return;
+        if (reduce.current) {
+          setIndex((i) => (i + 1) % MASK_ORDER.length);
+          setPhase("idle");
+          return;
+        }
+        setPhase("leave");
+      }}
+    >
+      <GridSlot
+        className="footer-mark-slot"
+        mask={MASK_ORDER[index] ?? "mable"}
+        phase={phase}
+        resetKey={index}
+        maxScale={1}
+        onEntered={() => setPhase("idle")}
+        onLeft={() => {
+          setIndex((i) => (i + 1) % MASK_ORDER.length);
+          setPhase("enter");
+        }}
+      />
+    </button>
+  );
+}
+
 const STEPS = [
-  { n: "01", title: "Find the thing", face: card1, tone: "#e4c9d2" },
-  { n: "02", title: "Make it a thing", face: card2, tone: "#c5d3dc" },
-  { n: "03", title: "Make it work", face: card3, tone: "#ddd6b6" },
-  { n: "04", title: "Make it yours", face: card4, tone: "#d3c2cb" },
+  { n: "01", title: "Find the thing", face: card1 },
+  { n: "02", title: "Make it a thing", face: card2 },
+  { n: "03", title: "Make it work", face: card3 },
+  { n: "04", title: "Make it yours", face: card4 },
 ];
 
 const CARDS = [
@@ -103,6 +147,8 @@ export function Sheet() {
   }, []);
 
   return (
+    <>
+    <div className="paper-wrap">
     <section className="sheet" ref={root}>
       <div className="team">
         <img className="sheet-star team-star-a" src={star} alt="" />
@@ -192,7 +238,10 @@ export function Sheet() {
           ))}
         </div>
       </section>
+    </section>
+    </div>
 
+    <section className="base">
       <section className="made" id="work">
         <div className="made-frame">
           <h2 className="made-title">A Few Things We’ve Made.</h2>
@@ -214,16 +263,11 @@ export function Sheet() {
                 key={step.n}
                 type="button"
                 className={open ? "step is-open" : "step"}
-                style={{ background: step.tone }}
                 aria-expanded={open}
                 aria-label={`${step.n} ${step.title}`}
                 onClick={() => setOpenStep(index)}
               >
                 <img className="step-face" src={step.face} alt="" />
-                <span className="step-spine">
-                  <span className="step-num">{step.n}</span>
-                  <span className="step-label">{step.title}</span>
-                </span>
               </button>
             );
           })}
@@ -248,6 +292,10 @@ export function Sheet() {
         </p>
       </section>
 
+      <a className="explore-work" href="#work">
+        Explore Our work and process
+      </a>
+
       <section className="invite">
         <h2>So...got something in mind?</h2>
         <p>
@@ -258,41 +306,45 @@ export function Sheet() {
           A strange little idea you’ve been sitting on for six months.
         </p>
         <a className="invite-btn" href="/contact">
-          Let’s work together!!
+          <span className="invite-wide">Let’s work together!!</span>
+          <span className="invite-narrow">Let’s Connect!</span>
         </a>
       </section>
 
       <footer className="footer">
-        <div className="footer-brand">
-          <img src={mable} alt="Mable." />
-          <p>Design X Code Studio!</p>
-          <div className="footer-dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
+        <div className="footer-frame">
+          <div className="footer-brand">
+            <FooterMark />
+            <p>Design X Code Studio!</p>
+            <div className="footer-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
-        </div>
-        <nav className="footer-nav" aria-label="Footer">
-          <p>Navigation</p>
-          <a href="#about">About Us</a>
-          <a href="#work">Work</a>
-          <a href="#services">Services</a>
-          <a href="/contact">Contact</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <div className="footer-ask">
-          <p>Have an idea? A project? A beautifully unnecessary website?</p>
-          <p className="footer-ask-sub">Leave us a message and tell us what’s on your mind.</p>
-          <a className="footer-msg" href="/contact">
-            Leave a message
-          </a>
+          <nav className="footer-nav" aria-label="Footer">
+            <p>Navigation</p>
+            <a href="#about">About Us</a>
+            <a href="#work">Work</a>
+            <a href="#services">Services</a>
+            <a href="/contact">Contact</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div className="footer-ask">
+            <p>Have an idea? A project? A beautifully unnecessary website?</p>
+            <p className="footer-ask-sub">Leave us a message and tell us what’s on your mind.</p>
+            <a className="footer-msg" href="/contact">
+              Leave a message
+            </a>
+          </div>
         </div>
         <p className="footer-legal">
           © 2026 Mable Studio
           <br />
-          still making the internet weirder
+          still making the internet weirder.
         </p>
       </footer>
     </section>
+    </>
   );
 }

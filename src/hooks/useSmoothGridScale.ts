@@ -54,6 +54,7 @@ export function useSmoothGridScale(
       if (!(grid instanceof HTMLElement)) return;
 
       cluster.style.setProperty("--mark-scale", scale.toFixed(4));
+      frame.style.setProperty("--grid-scale", scale.toFixed(4));
       gsap.set(cluster, { width: GRID_WIDTH * scale });
       gsap.set(frame, {
         width: GRID_WIDTH * scale,

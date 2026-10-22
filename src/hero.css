@@ -55,7 +55,7 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 22px 36px 0;
+  padding: 22px clamp(16px, 2.5vw, 36px) 0;
 }
 
 .nav-logo img {
@@ -66,7 +66,7 @@
 
 .nav-links {
   display: flex;
-  gap: 32px;
+  gap: clamp(12px, 2.2vw, 32px);
 }
 
 .nav a {
@@ -141,6 +141,20 @@
 .hero-space {
   display: inline-block;
   width: 0.28em;
+}
+
+@media (max-width: 760px) {
+  .nav-links {
+    display: none;
+  }
+
+  .nav-logo img {
+    height: 32px;
+  }
+
+  .make {
+    font-size: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -274,12 +288,19 @@
 .spark {
   width: 4.2%;
   pointer-events: none;
+  filter: drop-shadow(0 0 0 #d7bdc7) drop-shadow(0 0 0 #d7bdc7) drop-shadow(0 0 0.5px #d7bdc7);
 }
 
 .spark-a {
-  left: 8%;
-  bottom: 16%;
-  width: 5%;
+  left: 6%;
+  bottom: 8%;
+  width: 7.4%;
+}
+
+.spark-e {
+  left: 3%;
+  top: 14%;
+  width: 3.4%;
 }
 
 .spark-b {
