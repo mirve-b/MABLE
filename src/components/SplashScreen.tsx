@@ -66,11 +66,11 @@ export function SplashScreen() {
       <motion.footer className="splash-chrome splash-chrome-bottom" {...chromeFade}>
         <p>
           <span className="chrome-main">Design × Code Studio</span>
-          <span className="chrome-sub">Built by Mirvé</span>
+          <span className="chrome-sub is-mute">Built by Mirvé</span>
         </p>
         <p className="is-end">
           <span className="chrome-main is-rose">A little whimsy, please.</span>
-          <span className="chrome-sub is-mute">’ collective no to corporate!</span>
+          <span className="chrome-sub is-mute">collective no to corporate!</span>
         </p>
       </motion.footer>
 
