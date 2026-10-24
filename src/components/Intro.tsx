@@ -254,6 +254,7 @@ export function Intro() {
 
   return (
     <section className="intro" aria-label="Intro">
+      <div className="fx-slot" aria-hidden="true" />
       <div className="intro-glints" ref={glintRef} />
       <img
         ref={bestiesRef}

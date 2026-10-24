@@ -72,9 +72,9 @@ void main() {
   float pinkAmt = 1.0 - smoothstep(0.42, 0.75, life);
   vec3 tint = mix(pastel(flick), mix(HOT, BABY, n2), pinkAmt);
   float fade = smoothstep(0.3, 0.48, life);
-  vec3 col = tint * square * on * fade;
+  float alpha = clamp(square * on * fade, 0.0, 1.0);
 
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(tint * alpha, alpha);
 }
 `;
 
@@ -119,7 +119,8 @@ export function LiquidBackground({ className }: Props) {
     if (!canvas || !frame || !host) return;
 
     const gl = canvas.getContext("webgl", {
-      alpha: false,
+      alpha: true,
+      premultipliedAlpha: true,
       antialias: false,
       depth: false,
       stencil: false,
@@ -279,6 +280,7 @@ export function LiquidBackground({ className }: Props) {
 
     const draw = (now: number) => {
       const writeIndex = 1 - readIndex;
+      gl.disable(gl.BLEND);
       gl.bindFramebuffer(gl.FRAMEBUFFER, targets[writeIndex]!.fbo);
       gl.viewport(0, 0, trailW, trailH);
       gl.useProgram(trailProgram);
@@ -297,6 +299,10 @@ export function LiquidBackground({ className }: Props) {
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
       gl.useProgram(program);
       gl.bindTexture(gl.TEXTURE_2D, targets[readIndex]!.tex);
       gl.uniform2f(resolution, canvas.width, canvas.height);

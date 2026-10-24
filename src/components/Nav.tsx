@@ -1,20 +1,21 @@
-import logo from "../assets/deco/rabbit.svg";
+import "../hero.css";
 
 export function Nav() {
   return (
     <nav className="nav">
-      <a className="nav-logo" href="#top" aria-label="Mable">
-        <img src={logo} alt="" />
+      <a className="nav-brand" href="#top" aria-label="Mable">
+        <span className="nav-wordmark" aria-hidden="true" />
+        <span className="nav-studio">Design X Code Studio</span>
       </a>
       <div className="nav-links">
-        <a href="#about">about</a>
-        <a href="#work">work</a>
-        <a href="#services">services</a>
-        <a href="/contact">contact</a>
+        <a href="#about">About</a>
+        <a href="#work">Work</a>
+        <a href="#services">Services</a>
+        <a href="/contact">Contact</a>
         <a href="#faq">FAQ</a>
       </div>
       <a className="make" href="/contact">
-        let’s make it!!
+        Let’s make it!!
       </a>
     </nav>
   );

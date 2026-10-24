@@ -173,6 +173,9 @@ export function Hero() {
   return (
     <header className="hero" id="top" ref={root}>
       <LiquidBackground className="hero-liquid" />
+      <div className="hero-wash" aria-hidden="true" />
+      <div className="hero-bloom" aria-hidden="true" />
+      <div className="fx-slot" aria-hidden="true" />
       <svg className="arrow-tip" width="0" height="0" aria-hidden="true">
         <defs>
           <marker

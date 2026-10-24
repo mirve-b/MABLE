@@ -7,6 +7,7 @@ import { GridExport } from "./components/GridExport";
 import { Hero } from "./components/Hero";
 import { Intro } from "./components/Intro";
 import { Nav } from "./components/Nav";
+import { ScrollGlow } from "./components/ScrollGlow";
 import { Sheet } from "./components/Sheet";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -52,6 +53,7 @@ function Site() {
     <>
       <Nav />
       <div className="stage" ref={stage}>
+        <ScrollGlow />
         <Intro />
         <Hero />
         <Sheet />

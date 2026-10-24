@@ -210,11 +210,18 @@ body {
   }
 }
 
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+}
+
 .glitch-cursor {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 60;
+  z-index: 10002;
   width: 22px;
   height: 20px;
   margin-left: -11px;
@@ -248,9 +255,7 @@ body {
 
 .click-star {
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 50;
+  z-index: 10001;
   pointer-events: none;
   display: block;
   transform: translate(-50%, -50%);
@@ -281,6 +286,70 @@ html.is-site {
 
 .stage {
   position: relative;
+}
+
+.scroll-glow-layer {
+  position: fixed;
+  z-index: 12;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scroll-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(46vh, 420px);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  background:
+    radial-gradient(
+      90% 120% at 50% 120%,
+      rgb(254 99 160 / 0.72) 0%,
+      rgb(254 99 160 / 0.32) 30%,
+      transparent 74%
+    ),
+    linear-gradient(
+      to top,
+      rgb(254 99 160 / 0.42) 0%,
+      rgb(254 99 160 / 0.14) 38%,
+      transparent 100%
+    );
+}
+
+.scroll-pixel-layer {
+  position: fixed;
+  z-index: 13;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.glow-pixel,
+.glow-spark {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.glow-pixel {
+  background-color: #fe63a0;
+  -webkit-mask-image: url("./assets/pixel.svg");
+  mask-image: url("./assets/pixel.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.glow-spark {
+  background-color: #fe63a0;
+  box-shadow: 0 0 10px rgb(254 99 160 / 0.55);
 }
 
 .intro {

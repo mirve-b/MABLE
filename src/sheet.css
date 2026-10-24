@@ -20,6 +20,15 @@
   color: #f6f3f1;
 }
 
+.sheet > .fx-slot {
+  z-index: 0;
+}
+
+.sheet > *:not(.fx-slot) {
+  position: relative;
+  z-index: 1;
+}
+
 .base {
   display: flow-root;
   position: relative;

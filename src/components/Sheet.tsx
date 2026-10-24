@@ -150,6 +150,7 @@ export function Sheet() {
     <>
     <div className="paper-wrap">
     <section className="sheet" ref={root}>
+      <div className="fx-slot" aria-hidden="true" />
       <div className="team">
         <img className="sheet-star team-star-a" src={star} alt="" />
         <img className="sheet-star team-star-b" src={star} alt="" />

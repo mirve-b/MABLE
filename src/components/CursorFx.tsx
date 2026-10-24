@@ -1,4 +1,5 @@
 import { useEffect, useState, type MouseEvent, type PointerEvent } from "react";
+import { createPortal } from "react-dom";
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { PALETTE } from "../grid/colors";
 
@@ -61,8 +62,8 @@ type CursorFxProps = {
 };
 
 export function CursorFx({ x, y, visible, bursts, onBurstDone }: CursorFxProps) {
-  return (
-    <>
+  return createPortal(
+    <div className="cursor-layer">
       {bursts.map((star) => {
         const rad = (star.angle * Math.PI) / 180;
         const dx = Math.cos(rad) * star.distance;
@@ -99,7 +100,8 @@ export function CursorFx({ x, y, visible, bursts, onBurstDone }: CursorFxProps) 
       >
         <span className="glitch-cursor-glyph" />
       </motion.span>
-    </>
+    </div>,
+    document.body,
   );
 }
 
