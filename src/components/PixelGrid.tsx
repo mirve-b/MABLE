@@ -27,17 +27,6 @@ export function PixelGrid({
   onEntered,
   onLeft,
 }: PixelGridProps) {
-  const timings = useMemo(
-    () =>
-      CELLS.map(() => ({
-        inDelay: 0.03 + Math.random() * 0.82,
-        inDur: 0.1 + Math.random() * 0.2,
-        outDelay: 0.02 + Math.random() * 0.4,
-        outDur: 0.1 + Math.random() * 0.16,
-      })),
-    [],
-  );
-
   const litCells = useMemo(
     () => CELLS.filter(({ col, row }) => isCellOn(mask, col, row)),
     [mask],
@@ -59,6 +48,24 @@ export function PixelGrid({
     ).map((cell) => cell.index);
   }, [mask, litCells]);
 
+  const drawn = useMemo(() => {
+    const extra = new Set(offNearby);
+    return CELLS.filter(
+      ({ index, col, row }) => isCellOn(mask, col, row) || extra.has(index),
+    );
+  }, [mask, offNearby]);
+
+  const timings = useMemo(
+    () =>
+      drawn.map(() => ({
+        inDelay: 0.03 + Math.random() * 0.82,
+        inDur: 0.1 + Math.random() * 0.2,
+        outDelay: 0.02 + Math.random() * 0.4,
+        outDur: 0.1 + Math.random() * 0.16,
+      })),
+    [drawn],
+  );
+
   const glitches = usePixelGlitches(onIds, offNearby, phase === "idle");
 
   useEffect(() => {
@@ -75,12 +82,13 @@ export function PixelGrid({
 
   return (
     <div className={`pixel-grid is-${phase}`} aria-hidden="true">
-      {CELLS.map(({ index, col, row }) => {
+      {drawn.map((cell, drawIndex) => {
+        const { index, col, row } = cell;
         const on = isCellOn(mask, col, row);
         const glitch = glitches[index];
         const leaving = on && phase === "leave";
         const entering = on && phase !== "leave";
-        const timing = timings[index]!;
+        const timing = timings[drawIndex]!;
 
         return (
           <span

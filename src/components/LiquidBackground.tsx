@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { PALETTE } from "../grid/colors";
+import { isCoarsePointer, pixelRatio } from "../perf";
 
 const VERT = `
 attribute vec2 aPos;
@@ -168,8 +169,9 @@ export function LiquidBackground({ className }: Props) {
       return;
     }
 
-    const trailW = 480;
-    const trailH = 270;
+    const coarse = isCoarsePointer();
+    const trailW = coarse ? 240 : 480;
+    const trailH = coarse ? 135 : 270;
     const targets = [0, 1].map(() => {
       const tex = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -255,7 +257,7 @@ export function LiquidBackground({ className }: Props) {
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.35);
+      const dpr = pixelRatio(1.25);
       cellPx = 11 * dpr;
       const w = Math.max(1, Math.floor(rect.width * dpr));
       const h = Math.max(1, Math.floor(rect.height * dpr));
@@ -268,7 +270,7 @@ export function LiquidBackground({ className }: Props) {
 
     const refreshOcclusion = () => {
       const rect = host.getBoundingClientRect();
-      if (rect.bottom <= 8 || rect.top >= window.innerHeight - 8) {
+      if (rect.bottom <= 8 || rect.top >= window.innerHeight * 0.82) {
         occluded = true;
         return;
       }
@@ -313,6 +315,7 @@ export function LiquidBackground({ className }: Props) {
     };
 
     const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 1 || rect.height < 1) return;
       const x = (event.clientX - rect.left) / rect.width;
@@ -335,7 +338,7 @@ export function LiquidBackground({ className }: Props) {
     observer.observe(frame);
     canvas.addEventListener("webglcontextlost", onLost);
 
-    if (!reduce) {
+    if (!reduce && !coarse) {
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("scroll", refreshOcclusion, { passive: true });
       window.addEventListener("resize", refreshOcclusion);

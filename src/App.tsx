@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ContactPage } from "./components/ContactPage";
 import { CursorFx, useCursorFx } from "./components/CursorFx";
+import { isCoarsePointer } from "./perf";
 import { GridExport } from "./components/GridExport";
 import { Hero } from "./components/Hero";
 import { Intro } from "./components/Intro";
@@ -24,9 +25,11 @@ export default function App() {
 function Site() {
   const stage = useRef<HTMLDivElement>(null);
   const cursor = useCursorFx();
+  const coarse = isCoarsePointer();
 
   useLayoutEffect(() => {
     document.documentElement.classList.add("is-site");
+    gsap.ticker.lagSmoothing(1000, 16);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
@@ -58,13 +61,15 @@ function Site() {
         <Hero />
         <Sheet />
       </div>
-      <CursorFx
-        x={cursor.x}
-        y={cursor.y}
-        visible={cursor.visible}
-        bursts={cursor.bursts}
-        onBurstDone={cursor.onBurstDone}
-      />
+      {!coarse && (
+        <CursorFx
+          x={cursor.x}
+          y={cursor.y}
+          visible={cursor.visible}
+          bursts={cursor.bursts}
+          onBurstDone={cursor.onBurstDone}
+        />
+      )}
     </>
   );
 }

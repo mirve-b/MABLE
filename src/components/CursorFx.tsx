@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { motion, useMotionValue, type MotionValue } from "motion/react";
 import { PALETTE } from "../grid/colors";
+import { isCoarsePointer } from "../perf";
 
 type StarBurst = {
   id: number;
@@ -121,6 +122,7 @@ export function useCursorFx() {
   const onPointerLeave = () => setVisible(false);
 
   useEffect(() => {
+    if (isCoarsePointer()) return;
     const move = (event: globalThis.PointerEvent) => {
       if (event.pointerType !== "mouse") return;
       x.set(event.clientX);

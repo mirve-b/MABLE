@@ -99,6 +99,7 @@ body {
   pointer-events: none;
   will-change: transform;
   backface-visibility: hidden;
+  contain: layout style;
 }
 
 .pixel-cross {
@@ -302,21 +303,10 @@ html.is-site {
   right: 0;
   bottom: 0;
   height: min(46vh, 420px);
+  width: 100%;
+  display: block;
   opacity: 0;
-  transform-origin: 50% 100%;
-  background:
-    radial-gradient(
-      90% 120% at 50% 120%,
-      rgb(254 99 160 / 0.72) 0%,
-      rgb(254 99 160 / 0.32) 30%,
-      transparent 74%
-    ),
-    linear-gradient(
-      to top,
-      rgb(254 99 160 / 0.42) 0%,
-      rgb(254 99 160 / 0.14) 38%,
-      transparent 100%
-    );
+  pointer-events: none;
 }
 
 .scroll-pixel-layer {

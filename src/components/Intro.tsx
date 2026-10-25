@@ -131,7 +131,7 @@ export function Intro() {
     };
 
     const tick = () => {
-      spawn();
+      if (window.scrollY < 24) spawn();
       later(tick, 520 + Math.random() * 780);
     };
     later(tick, 60);
@@ -170,6 +170,7 @@ export function Intro() {
 
     let released = false;
     let scattered = false;
+    let liftY = 0;
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: hero,
@@ -178,7 +179,6 @@ export function Intro() {
         onUpdate(self) {
           const p = self.progress;
           const box = lift.getBoundingClientRect();
-          const liftY = Number(gsap.getProperty(lift, "y")) || 0;
           const naturalTop = box.top - liftY;
           const height = box.height;
           const view = window.innerHeight;
@@ -189,7 +189,8 @@ export function Intro() {
               ? gsap.utils.interpolate(naturalTop, centeredTop, p / 0.5)
               : gsap.utils.interpolate(centeredTop, navTop, Math.min(1, (p - 0.5) / 0.16));
           if (p < 0.64) dest = Math.min(dest, (1 - p) * view - height - 16);
-          gsap.set(lift, { y: dest - naturalTop });
+          liftY = dest - naturalTop;
+          lift.style.transform = `translate3d(0, ${liftY}px, 0)`;
 
           if (p > 0.01) {
             if (!released) {
@@ -197,39 +198,37 @@ export function Intro() {
               released = true;
             }
             const fade = p <= 0.5 ? 1 : p >= 0.7 ? 0 : 1 - (p - 0.5) / 0.2;
-            gsap.set(photo, { opacity: fade });
+            photo.style.opacity = String(fade);
           } else if (released) {
-            gsap.set(photo, { opacity: 1 });
+            photo.style.opacity = "1";
           }
 
-          if (cue) gsap.set(cue, { opacity: p <= 0 ? 1 : Math.max(0, 1 - p / 0.14) });
+          if (cue) cue.style.opacity = p <= 0 ? "1" : String(Math.max(0, 1 - p / 0.14));
 
           if (p >= 0.64) {
             scattered = true;
             const t = Math.min(1, (p - 0.64) / 0.18);
-            bursts.forEach((bit) => {
+            for (let i = 0; i < bursts.length; i += 1) {
+              const bit = bursts[i]!;
+              bit.el.style.transform = `translate3d(${bit.dx * t}px, ${bit.dy * t}px, 0)`;
+              bit.el.style.opacity = String(1 - t);
               if (bit.letter) {
-                gsap.set(bit.el, {
-                  x: bit.dx * t,
-                  y: bit.dy * t,
-                  opacity: 1 - t,
-                  color: t < 0.45 ? bit.flash : "#d9d9d9",
-                });
+                bit.el.style.color = t < 0.45 ? bit.flash : "#d9d9d9";
+              } else if (t < 0.4) {
+                bit.el.style.backgroundColor = bit.flash;
               } else {
-                gsap.set(bit.el, {
-                  x: bit.dx * t,
-                  y: bit.dy * t,
-                  opacity: 1 - t,
-                  backgroundColor: t < 0.4 ? bit.flash : "",
-                });
+                bit.el.style.backgroundColor = "";
               }
-            });
+            }
           } else if (scattered) {
             scattered = false;
-            gsap.set(
-              bursts.map((bit) => bit.el),
-              { x: 0, y: 0, opacity: 1, clearProps: "backgroundColor,color" },
-            );
+            for (let i = 0; i < bursts.length; i += 1) {
+              const el = bursts[i]!.el;
+              el.style.transform = "";
+              el.style.opacity = "1";
+              el.style.backgroundColor = "";
+              el.style.color = "";
+            }
           }
         },
       });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { GLITCH_COLORS } from "../grid/colors";
+import { isCoarsePointer } from "../perf";
 
 export type GlitchState = {
   color: string;
@@ -36,7 +37,8 @@ export function usePixelGlitches(
     let cancelled = false;
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const active = new Set<number>();
-    let target = Math.random() < 0.5 ? 2 : 3;
+    const coarse = isCoarsePointer();
+    let target = coarse ? 1 : Math.random() < 0.5 ? 2 : 3;
     let nonce = 0;
 
     const later = (fn: () => void, ms: number) => {
@@ -84,16 +86,16 @@ export function usePixelGlitches(
       later(() => {
         stopGlitch(cell);
         fill();
-      }, rand(90, 280));
+      }, rand(coarse ? 140 : 90, coarse ? 360 : 280));
     };
 
     const tick = () => {
       if (cancelled) return;
       if (Math.random() < 0.28) {
-        target = Math.random() < 0.5 ? 2 : 3;
+        target = coarse ? 1 : Math.random() < 0.5 ? 2 : 3;
       }
       fill();
-      later(tick, rand(120, 320));
+      later(tick, rand(coarse ? 220 : 120, coarse ? 480 : 320));
     };
 
     later(tick, 80);

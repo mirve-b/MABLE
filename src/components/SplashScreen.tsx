@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSmoothGridScale } from "../hooks/useSmoothGridScale";
+import { isCoarsePointer } from "../perf";
 import { CursorFx, useCursorFx } from "./CursorFx";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
@@ -14,6 +15,7 @@ export function SplashScreen({ onReveal, onFinished }: SplashScreenProps) {
   const [phase, setPhase] = useState<GridPhase>("enter");
   const [dismissing, setDismissing] = useState(false);
   const cursor = useCursorFx();
+  const coarse = isCoarsePointer();
   const clusterRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   useSmoothGridScale(clusterRef, frameRef);
@@ -56,13 +58,15 @@ export function SplashScreen({ onReveal, onFinished }: SplashScreenProps) {
           A DESIGN X CODE STUDIO!
         </p>
       </div>
-      <CursorFx
-        x={cursor.x}
-        y={cursor.y}
-        visible={cursor.visible && !dismissing}
-        bursts={cursor.bursts}
-        onBurstDone={cursor.onBurstDone}
-      />
+      {!coarse && (
+        <CursorFx
+          x={cursor.x}
+          y={cursor.y}
+          visible={cursor.visible && !dismissing}
+          bursts={cursor.bursts}
+          onBurstDone={cursor.onBurstDone}
+        />
+      )}
     </main>
   );
 }

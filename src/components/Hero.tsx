@@ -92,12 +92,19 @@ export function Hero() {
       intro.fromTo(".hero-sub", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22 }, 0.48);
 
       const letters = gsap.utils.toArray<HTMLElement>(".hero-letter");
-      gsap.set(letters, { color: "#000" });
+      gsap.set(letters, { yPercent: 118, color: "#000" });
       letters.forEach((letter, index) => {
+        const at = index * 0.028;
         const shift = index % GLITCH.length;
         const seq = ["#000", ...GLITCH.slice(shift), ...GLITCH.slice(0, shift)].slice(0, 5);
         seq.push("#FE63A0");
         const state = { p: 0 };
+        intro.fromTo(
+          letter,
+          { yPercent: 118 },
+          { yPercent: 0, duration: 0.34, ease: "none" },
+          at,
+        );
         intro.to(
           state,
           {
@@ -109,7 +116,7 @@ export function Hero() {
               letter.style.color = seq[step] ?? "#FE63A0";
             },
           },
-          index * 0.028,
+          at,
         );
       });
       pieces.forEach((piece, index) => {
@@ -174,7 +181,9 @@ export function Hero() {
     <header className="hero" id="top" ref={root}>
       <LiquidBackground className="hero-liquid" />
       <div className="hero-wash" aria-hidden="true" />
-      <div className="hero-bloom" aria-hidden="true" />
+      <div className="hero-bloom" aria-hidden="true">
+        <canvas />
+      </div>
       <div className="fx-slot" aria-hidden="true" />
       <svg className="arrow-tip" width="0" height="0" aria-hidden="true">
         <defs>

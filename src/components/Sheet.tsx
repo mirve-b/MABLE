@@ -90,19 +90,133 @@ const CARDS = [
   },
 ];
 
+function sprinkle(host: HTMLElement, count: number, seed: number) {
+  const bits: HTMLElement[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const bit = document.createElement("span");
+    bit.className = "service-pixel";
+    bit.style.left = `${(i * 37 + seed * 11) % 92}%`;
+    bit.style.top = `${(i * 23 + seed * 13) % 88}%`;
+    bit.style.backgroundColor = PIXELS[(i + seed) % PIXELS.length] ?? "#FE63A0";
+    const size = 6 + (i % 3) * 2;
+    bit.style.width = `${size}px`;
+    bit.style.height = `${size * 0.9}px`;
+    host.appendChild(bit);
+    bits.push(bit);
+  }
+  return bits;
+}
+
 export function Sheet() {
-  const root = useRef<HTMLElement>(null);
+  const page = useRef<HTMLDivElement>(null);
   const [openStep, setOpenStep] = useState(0);
 
   useLayoutEffect(() => {
-    const sheet = root.current;
-    if (!sheet) return;
+    const root = page.current;
+    if (!root) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
 
     const ctx = gsap.context(() => {
+      const enter = (trigger: string, start = "top 82%") =>
+        ({
+          trigger,
+          start,
+          toggleActions: "play none none none",
+          once: true,
+        }) as const;
+
+      const teamIn = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: ".sheet",
+          start: "top 92%",
+          end: "top 38%",
+          scrub: 0.45,
+        },
+      });
+      teamIn.fromTo(".team-ayesha", { y: 90, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.7 }, 0);
+      teamIn.fromTo(".team-mirve", { y: 110, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.7 }, 0.08);
+      teamIn.fromTo(".team-left", { x: -48, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.5 }, 0.16);
+      teamIn.fromTo(".team-right", { x: 48, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.5 }, 0.2);
+      teamIn.fromTo(
+        ".team-bubble",
+        { y: -28, scale: 0.72, rotation: -10, autoAlpha: 0 },
+        { y: 0, scale: 1, rotation: 0, autoAlpha: 1, duration: 0.45 },
+        0.22,
+      );
+      teamIn.fromTo(
+        ".team-star-a, .team-star-b",
+        { scale: 0.2, rotation: 40, autoAlpha: 0 },
+        { scale: 1, rotation: 0, autoAlpha: 1, duration: 0.4, stagger: 0.08 },
+        0.28,
+      );
+
+      gsap.from(".about", {
+        y: 42,
+        duration: 0.7,
+        ease: "power2.out",
+        scrollTrigger: enter(".about", "top 86%"),
+      });
+      gsap.fromTo(
+        ".about-tape",
+        { xPercent: -46, yPercent: -78, rotation: -22, autoAlpha: 0 },
+        {
+          xPercent: -46,
+          yPercent: -58,
+          rotation: -8,
+          autoAlpha: 1,
+          duration: 0.55,
+          ease: "back.out(1.4)",
+          scrollTrigger: enter(".about", "top 86%"),
+        },
+      );
+      gsap.from(".about-copy p", {
+        y: 18,
+        autoAlpha: 0,
+        duration: 0.55,
+        stagger: 0.12,
+        ease: "power2.out",
+        scrollTrigger: enter(".about", "top 80%"),
+      });
+      gsap.from(".star-about-a, .star-about-b", {
+        scale: 0.15,
+        rotation: 50,
+        autoAlpha: 0,
+        duration: 0.45,
+        stagger: 0.1,
+        ease: "back.out(1.8)",
+        scrollTrigger: enter(".about", "top 86%"),
+      });
+
+      gsap.from(".services-kicker, .services-title", {
+        y: 24,
+        autoAlpha: 0,
+        duration: 0.55,
+        stagger: 0.08,
+        ease: "power2.out",
+        scrollTrigger: enter(".services", "top 86%"),
+      });
+      gsap.from(".services-bubble", {
+        scale: 0.7,
+        rotation: 8,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "back.out(1.5)",
+        scrollTrigger: enter(".services", "top 84%"),
+      });
+      gsap.from(".star-services-a, .star-services-b, .star-services-c", {
+        scale: 0.2,
+        rotation: 36,
+        autoAlpha: 0,
+        duration: 0.45,
+        stagger: 0.08,
+        ease: "back.out(1.7)",
+        scrollTrigger: enter(".services", "top 86%"),
+      });
+
       const cards = gsap.utils.toArray<HTMLElement>(".service-card");
-      const enter = gsap.timeline({
+      const cardIn = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: ".services",
@@ -111,45 +225,148 @@ export function Sheet() {
           scrub: 0.45,
         },
       });
-
       cards.forEach((card, index) => {
         const fromX = index === 0 ? -160 : index === 2 ? 160 : 0;
         const fromY = index === 1 ? 90 : 16;
-        enter.fromTo(
+        cardIn.fromTo(
           card,
           { x: fromX, y: fromY, autoAlpha: 0 },
           { x: 0, y: 0, autoAlpha: 1, duration: 0.55 },
           index === 1 ? 0.12 : 0,
         );
-
-        for (let i = 0; i < 8; i += 1) {
-          const bit = document.createElement("span");
-          bit.className = "service-pixel";
-          bit.style.left = `${(i * 37) % 92}%`;
-          bit.style.top = `${(i * 23 + index * 11) % 88}%`;
-          bit.style.backgroundColor = PIXELS[(i + index) % PIXELS.length] ?? "#FE63A0";
-          const size = 7 + (i % 3) * 2;
-          bit.style.width = `${size}px`;
-          bit.style.height = `${size * 0.9}px`;
-          card.appendChild(bit);
-
+        sprinkle(card, 8, index).forEach((bit, i) => {
           const at = (index === 1 ? 0.12 : 0) + i * 0.04;
-          enter.fromTo(bit, { opacity: 0, scale: 0.35 }, { opacity: 1, scale: 1, duration: 0.08 }, at);
-          enter.to(bit, { opacity: 0, duration: 0.1 }, at + 0.14);
-        }
+          cardIn.fromTo(bit, { opacity: 0, scale: 0.35 }, { opacity: 1, scale: 1, duration: 0.08 }, at);
+          cardIn.to(bit, { opacity: 0, duration: 0.1 }, at + 0.14);
+        });
       });
-    }, sheet);
+
+      gsap.from(".made-frame", {
+        y: 48,
+        autoAlpha: 0,
+        duration: 0.7,
+        ease: "power2.out",
+        scrollTrigger: enter(".made", "top 88%"),
+      });
+      gsap.from(".made-title", {
+        y: 20,
+        duration: 0.55,
+        ease: "power2.out",
+        scrollTrigger: enter(".made", "top 84%"),
+      });
+      gsap.from(".made-logos img:not(.made-star)", {
+        y: 16,
+        autoAlpha: 0,
+        duration: 0.4,
+        stagger: 0.06,
+        ease: "power2.out",
+        scrollTrigger: enter(".made-logos", "top 92%"),
+      });
+      gsap.from(".made-star", {
+        scale: 0.2,
+        rotation: 40,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "back.out(1.6)",
+        scrollTrigger: enter(".made-logos", "top 92%"),
+      });
+
+      gsap.from(".process-deck", {
+        y: 56,
+        duration: 0.75,
+        ease: "power2.out",
+        scrollTrigger: enter(".process", "top 84%"),
+      });
+      gsap.from(".step", {
+        x: -28,
+        autoAlpha: 0,
+        duration: 0.5,
+        stagger: 0.07,
+        ease: "power2.out",
+        scrollTrigger: enter(".process-deck", "top 82%"),
+      });
+      gsap.from(".process-folder", {
+        x: 36,
+        autoAlpha: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: enter(".process-deck", "top 82%"),
+      });
+      gsap.from(".process-lemons", {
+        y: 24,
+        scale: 0.6,
+        rotation: -12,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "back.out(1.5)",
+        scrollTrigger: enter(".process", "top 72%"),
+      });
+      gsap.from(".process-note", {
+        y: 32,
+        rotation: 10,
+        autoAlpha: 0,
+        duration: 0.55,
+        ease: "back.out(1.3)",
+        scrollTrigger: enter(".process", "top 70%"),
+      });
+
+      gsap.from(".weird-title, .weird p", {
+        y: 22,
+        autoAlpha: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: enter(".weird", "top 84%"),
+      });
+
+      gsap.from(".invite", {
+        y: 40,
+        autoAlpha: 0,
+        duration: 0.7,
+        ease: "power2.out",
+        scrollTrigger: enter(".invite", "top 86%"),
+      });
+      gsap.from(".invite h2, .invite p, .invite-btn", {
+        y: 18,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: enter(".invite", "top 80%"),
+      });
+
+      gsap.from(".footer-frame", {
+        y: 36,
+        autoAlpha: 0,
+        duration: 0.7,
+        ease: "power2.out",
+        scrollTrigger: enter(".footer", "top 88%"),
+      });
+      gsap.from(".footer-brand, .footer-nav, .footer-ask", {
+        y: 16,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: enter(".footer-frame", "top 86%"),
+      });
+      gsap.from(".footer-legal", {
+        y: 12,
+        autoAlpha: 0,
+        duration: 0.45,
+        ease: "power2.out",
+        scrollTrigger: enter(".footer-legal", "top 96%"),
+      });
+    }, root);
 
     return () => {
-      sheet.querySelectorAll(".service-pixel").forEach((bit) => bit.remove());
+      root.querySelectorAll(".service-pixel").forEach((bit) => bit.remove());
       ctx.revert();
     };
   }, []);
 
   return (
-    <>
+    <div ref={page}>
     <div className="paper-wrap">
-    <section className="sheet" ref={root}>
+    <section className="sheet">
       <div className="fx-slot" aria-hidden="true" />
       <div className="team">
         <img className="sheet-star team-star-a" src={star} alt="" />
@@ -346,6 +563,6 @@ export function Sheet() {
         </p>
       </footer>
     </section>
-    </>
+    </div>
   );
 }

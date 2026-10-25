@@ -1,19 +1,22 @@
 .paper-wrap {
+  --sheet-inset: 16px;
   position: relative;
   z-index: 3;
+  padding: var(--sheet-inset);
 }
 
 .sheet {
   position: sticky;
-  top: 0;
+  top: var(--sheet-inset);
   z-index: 3;
   margin: 0;
-  border: 0;
-  border-radius: 0;
+  border: 5px solid #000;
+  border-radius: 28px;
   overflow: hidden;
+  padding-top: 56px;
   padding-bottom: 80px;
   background-color: #141414;
-  background-image: url("./assets/deco/bg-fold@2x.jpg");
+  background-image: url("./assets/deco/bg-fold.webp");
   background-repeat: no-repeat;
   background-position: center -500px;
   background-size: 100% auto;
@@ -40,7 +43,7 @@
 .team {
   position: relative;
   height: 640px;
-  margin: 28px var(--edge) 0;
+  margin: 12px var(--edge) 0;
 }
 
 .team-figures {
@@ -687,9 +690,16 @@
 }
 
 @media (max-width: 760px) {
+  .paper-wrap {
+    --sheet-inset: 10px;
+  }
+
   .sheet {
     position: relative;
-    padding-top: 64px;
+    top: auto;
+    border-width: 4px;
+    border-radius: 20px;
+    padding-top: 72px;
     padding-bottom: 8px;
   }
 
@@ -832,7 +842,7 @@
     display: flex;
     flex-direction: column;
     background-color: #141414;
-    background-image: url("./assets/deco/bg-fold@2x.jpg");
+    background-image: url("./assets/deco/bg-fold.webp");
     background-repeat: no-repeat;
     background-size: 100% auto;
     background-position: center top;
