@@ -1,7 +1,8 @@
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 import { COLS, ROWS } from "../grid/constants";
 import { isCellOn, type MaskName } from "../grid/masks";
 import { usePixelGlitches } from "../hooks/usePixelGlitches";
+import { usePixelHeat } from "../hooks/usePixelHeat";
 
 export type GridPhase = "enter" | "idle" | "leave";
 
@@ -59,7 +60,9 @@ export function PixelGrid({
     ).map((cell) => cell.index);
   }, [mask, litCells]);
 
-  const glitches = usePixelGlitches(onIds, offNearby, phase === "idle");
+  const gridRef = useRef<HTMLDivElement>(null);
+  usePixelGlitches(gridRef, onIds, offNearby, phase === "idle");
+  usePixelHeat(gridRef);
 
   useEffect(() => {
     if (phase !== "enter") return;
@@ -74,10 +77,9 @@ export function PixelGrid({
   }, [phase, onLeft]);
 
   return (
-    <div className={`pixel-grid is-${phase}`} aria-hidden="true">
+    <div className={`pixel-grid is-${phase}`} ref={gridRef} aria-hidden="true">
       {CELLS.map(({ index, col, row }) => {
         const on = isCellOn(mask, col, row);
-        const glitch = glitches[index];
         const leaving = on && phase === "leave";
         const entering = on && phase !== "leave";
         const timing = timings[index]!;
@@ -89,7 +91,6 @@ export function PixelGrid({
               "pixel-cross",
               entering ? "is-on" : "",
               leaving ? "is-leaving" : "",
-              glitch ? "is-glitching" : "",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -101,7 +102,6 @@ export function PixelGrid({
                 "--intro-duration": `${timing.inDur}s`,
                 "--out-delay": `${timing.outDelay}s`,
                 "--out-duration": `${timing.outDur}s`,
-                "--glitch-color": glitch?.color ?? "#FE63A0",
               } as CSSProperties
             }
           />

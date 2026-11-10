@@ -1,10 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, type RefObject } from "react";
 import { GLITCH_COLORS } from "../grid/colors";
-
-export type GlitchState = {
-  color: string;
-  nonce: number;
-};
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
@@ -20,24 +15,26 @@ function pickFree(pool: number[], used: Set<number>): number | null {
   return pick(available);
 }
 
+/**
+ * Random 2–3 cells flicker in glitch colours while the mark is idle.
+ * Toggles classes on the cell elements directly instead of through React state,
+ * so a flicker no longer re-renders all 924 cells (that was the main source of jank).
+ */
 export function usePixelGlitches(
+  gridRef: RefObject<HTMLElement | null>,
   primary: number[],
   secondary: number[],
   enabled: boolean,
 ) {
-  const [glitches, setGlitches] = useState<Record<number, GlitchState>>({});
-
   useEffect(() => {
-    if (!enabled || primary.length === 0) {
-      setGlitches({});
-      return;
-    }
+    const grid = gridRef.current;
+    if (!grid || !enabled || primary.length === 0) return;
+    const cells = grid.children;
 
     let cancelled = false;
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const active = new Set<number>();
     let target = Math.random() < 0.5 ? 2 : 3;
-    let nonce = 0;
 
     const later = (fn: () => void, ms: number) => {
       const id = setTimeout(() => {
@@ -49,12 +46,19 @@ export function usePixelGlitches(
 
     const stopGlitch = (cell: number) => {
       active.delete(cell);
-      setGlitches((current) => {
-        if (!(cell in current)) return current;
-        const next = { ...current };
-        delete next[cell];
-        return next;
-      });
+      cells[cell]?.classList.remove("is-glitching");
+    };
+
+    const startGlitch = (cell: number) => {
+      const el = cells[cell] as HTMLElement | undefined;
+      if (cancelled || !el || active.has(cell)) return;
+      active.add(cell);
+      el.style.setProperty("--glitch-color", pick(GLITCH_COLORS));
+      el.classList.add("is-glitching");
+      later(() => {
+        stopGlitch(cell);
+        fill();
+      }, rand(90, 280));
     };
 
     const fill = () => {
@@ -70,28 +74,9 @@ export function usePixelGlitches(
       }
     };
 
-    const startGlitch = (cell: number) => {
-      if (cancelled || active.has(cell)) return;
-      active.add(cell);
-      nonce += 1;
-      const color = pick(GLITCH_COLORS);
-      const token = nonce;
-      setGlitches((current) => ({
-        ...current,
-        [cell]: { color, nonce: token },
-      }));
-
-      later(() => {
-        stopGlitch(cell);
-        fill();
-      }, rand(90, 280));
-    };
-
     const tick = () => {
       if (cancelled) return;
-      if (Math.random() < 0.28) {
-        target = Math.random() < 0.5 ? 2 : 3;
-      }
+      if (Math.random() < 0.28) target = Math.random() < 0.5 ? 2 : 3;
       fill();
       later(tick, rand(120, 320));
     };
@@ -101,8 +86,7 @@ export function usePixelGlitches(
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
+      active.forEach((cell) => cells[cell]?.classList.remove("is-glitching"));
     };
-  }, [primary, secondary, enabled]);
-
-  return glitches;
+  }, [gridRef, primary, secondary, enabled]);
 }

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { MASK_ORDER, type MaskName } from "../grid/masks";
 import { CursorFx, useCursorFx } from "./CursorFx";
+import { CursorSparkles } from "./CursorSparkles";
 import { useSmoothGridScale } from "../hooks/useSmoothGridScale";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
@@ -73,6 +74,8 @@ export function SplashScreen() {
           <span className="chrome-sub is-mute">collective no to corporate!</span>
         </p>
       </motion.footer>
+
+      <CursorSparkles />
 
       <CursorFx
         x={cursor.x}

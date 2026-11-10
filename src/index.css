@@ -117,6 +117,39 @@ body {
 .pixel-grid.is-idle .pixel-cross.is-on {
   opacity: 1;
   animation: none;
+  /* --heat (0–1) is eased per cell by usePixelHeat: the side nearest the cursor warms to hot pink */
+  background-color: color-mix(in srgb, #fe63a0 calc(var(--heat, 0) * 100%), var(--pixel));
+  /* cross → square: a centred square mask grows with heat and fills the stitch in */
+  --sq: clamp(0, calc((var(--heat, 0) - 0.3) * 2.2), 1);
+  -webkit-mask-image: url("./assets/pixel.svg"), linear-gradient(#000, #000);
+  mask-image: url("./assets/pixel.svg"), linear-gradient(#000, #000);
+  -webkit-mask-size: 100% 100%, calc(var(--sq) * 86%) calc(var(--sq) * 96%);
+  mask-size: 100% 100%, calc(var(--sq) * 86%) calc(var(--sq) * 96%);
+  -webkit-mask-position: center, center;
+  mask-position: center, center;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+}
+
+/* cursor zone: hot cells flicker, jitter and pop (values re-rolled by usePixelHeat) */
+.pixel-grid.is-idle .pixel-cross.is-on.is-zap {
+  opacity: var(--za, 1);
+  background-color: var(--zap, #fe63a0);
+  transform: translate(var(--zx, 0), var(--zy, 0)) scale(var(--zs, 1));
+  animation: none;
+}
+
+/* a pixel that just shattered into particles blinks out, then rebuilds */
+.pixel-grid.is-idle .pixel-cross.is-on.is-burst {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: none;
+}
+
+.pixel-grid.is-idle .pixel-cross.is-on.is-rebuild {
+  transition:
+    opacity 0.26s steps(3, end),
+    transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 .pixel-cross.is-leaving {
@@ -218,6 +251,39 @@ body {
 
 .glitch-cursor.is-on {
   opacity: 1;
+}
+
+/* keep the glowing cursor on its own layer so its drop-shadows aren't repainted every move */
+.glitch-cursor {
+  will-change: transform;
+}
+
+.cursor-sparkles {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* website-style sparkles: tiny glowing squares, diamonds and pixel-crosses */
+.pixel-spark {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.pixel-spark.is-glint,
+.pixel-spark.is-diamond {
+  box-shadow: 0 0 8px color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.pixel-spark.is-cross {
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 5px rgb(254 99 160 / 0.55));
 }
 
 .glitch-cursor-glyph {
