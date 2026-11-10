@@ -16,6 +16,10 @@ export const CROSS_HEIGHT = 9;
  */
 export const CELL_PITCH = 10;
 
+/** Glow / hero-edge stitch: 8px square on a 12px pitch. */
+export const GLOW_STEP = 12;
+export const GLOW_INNER = 8;
+
 /** Max scale; actual size is min(this, viewport / grid). */
 export const DESKTOP_SCALE = 1.85;
 export const MOBILE_BREAKPOINT = 600;

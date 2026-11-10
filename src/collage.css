@@ -1,0 +1,360 @@
+.collage {
+  position: relative;
+  z-index: 3;
+  height: 300vh;
+  margin-top: -1px;
+  background: #000;
+}
+
+.collage-stage {
+  --wk: 1;
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+
+/* polka dots, fading out behind the headline so the type stays clean */
+.collage-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(254 99 160 / 0.22) 1.6px, transparent 2.1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 58% 46% at 50% 50%, transparent 30%, #000 100%);
+  mask-image: radial-gradient(ellipse 58% 46% at 50% 50%, transparent 30%, #000 100%);
+}
+
+.collage-world {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+.piece {
+  position: absolute;
+  width: calc(var(--w) * 1vw * var(--wk));
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.piece-par {
+  will-change: transform;
+}
+
+.piece img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 12px 22px rgb(0 0 0 / 0.55));
+}
+
+/* clean polka-dot paper: soft pastel card, tiny dots, rounded corners */
+.piece-paper {
+  display: block;
+  aspect-ratio: 4 / 5;
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--dot) 1.4px, transparent 1.9px);
+  background-size: 13px 13px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
+  opacity: 0.92;
+}
+
+.piece.is-pink {
+  --paper: #ffc1dc;
+  --dot: rgb(254 99 160 / 0.55);
+}
+
+.piece.is-blue {
+  --paper: #a3b8c8;
+  --dot: rgb(255 255 255 / 0.6);
+}
+
+.piece.is-butter {
+  --paper: #d5d0ad;
+  --dot: rgb(11 11 11 / 0.25);
+}
+
+.collage-head {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.collage-kicker {
+  color: #ffc1dc;
+  font-family: Outfit, sans-serif;
+  font-weight: 200;
+  font-size: clamp(18px, 2.3vw, 40px);
+  letter-spacing: 0.6em;
+  line-height: 1;
+  text-transform: uppercase;
+  padding-left: 0.6em;
+}
+
+.collage-row.is-big {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  margin-top: 0.08em;
+  padding: 0.06em 0.06em 0.02em;
+  color: #fe63a0;
+  font-family: "42dot Sans", "Arial Black", sans-serif;
+  font-weight: 800;
+  font-size: clamp(72px, 17vw, 330px);
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.collage-letter {
+  display: inline-block;
+}
+
+.collage-space {
+  display: inline-block;
+  width: 0.3em;
+}
+
+/* RGB-split glitch slices, switched on once the word has landed */
+.collage-row.is-big::before,
+.collage-row.is-big::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0.06em 0.06em 0.02em;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.collage-row.is-big::before {
+  color: #a3b8c8;
+}
+
+.collage-row.is-big::after {
+  color: #d5d0ad;
+}
+
+.collage-stage.is-glitching .collage-row.is-big::before {
+  animation: glitch-a 3.2s steps(1, end) infinite;
+}
+
+.collage-stage.is-glitching .collage-row.is-big::after {
+  animation: glitch-b 3.2s steps(1, end) infinite;
+}
+
+@keyframes glitch-a {
+  0%,
+  86%,
+  100% {
+    opacity: 0;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+  87% {
+    opacity: 0.9;
+    transform: translate(-0.035em, 0);
+    clip-path: inset(12% 0 64% 0);
+  }
+  90% {
+    opacity: 0.9;
+    transform: translate(0.03em, 0);
+    clip-path: inset(58% 0 18% 0);
+  }
+  93% {
+    opacity: 0.9;
+    transform: translate(-0.02em, 0);
+    clip-path: inset(34% 0 44% 0);
+  }
+}
+
+@keyframes glitch-b {
+  0%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+  89% {
+    opacity: 0.85;
+    transform: translate(0.04em, 0);
+    clip-path: inset(70% 0 6% 0);
+  }
+  92% {
+    opacity: 0.85;
+    transform: translate(-0.03em, 0);
+    clip-path: inset(22% 0 60% 0);
+  }
+  95% {
+    opacity: 0.85;
+    transform: translate(0.02em, 0);
+    clip-path: inset(46% 0 30% 0);
+  }
+}
+
+.collage-note {
+  margin-top: 1.4em;
+  padding: 0.7em 1.4em 0.75em;
+  border: 1px solid rgb(215 189 199 / 0.5);
+  border-radius: 999px;
+  color: #d7bdc7;
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  font-size: clamp(11px, 1vw, 15px);
+  letter-spacing: 0.28em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.collage-tag {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 1.1em 0.6em;
+  border: 1px solid var(--tone);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.7);
+  color: var(--tone);
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  font-size: clamp(11px, 0.95vw, 15px);
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  translate: -50% -50%;
+  will-change: transform;
+}
+
+.collage-tag i {
+  display: block;
+  width: 9px;
+  height: 8px;
+  background-color: var(--tone);
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+}
+
+.collage-tag.is-pink {
+  --tone: #fe63a0;
+}
+
+.collage-tag.is-blue {
+  --tone: #a3b8c8;
+}
+
+.collage-tag.is-butter {
+  --tone: #d5d0ad;
+}
+
+.collage-tag.is-mauve {
+  --tone: #d7bdc7;
+}
+
+.collage-pixels {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.collage-px {
+  position: absolute;
+  width: var(--s);
+  height: calc(var(--s) * 0.9);
+  background-color: var(--px);
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  opacity: 0;
+  animation: collage-blink 2.6s steps(1, end) infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes collage-blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  14% {
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  30% {
+    opacity: 0;
+  }
+}
+
+.collage-glints {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.collage.is-still {
+  height: auto;
+}
+
+.collage.is-still .collage-stage {
+  position: relative;
+}
+
+@media (max-width: 760px) {
+  .collage {
+    height: 260vh;
+  }
+
+  .collage-stage {
+    --wk: 2.2;
+  }
+
+  .piece-desk {
+    display: none;
+  }
+
+  .collage-kicker {
+    letter-spacing: 0.4em;
+  }
+
+  .collage-note {
+    letter-spacing: 0.18em;
+    padding: 0.7em 1em;
+  }
+
+  .collage-stage::before {
+    background-size: 20px 20px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 30% at 50% 50%, transparent 30%, #000 100%);
+    mask-image: radial-gradient(ellipse 70% 30% at 50% 50%, transparent 30%, #000 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collage-px {
+    animation: none;
+    opacity: 0.6;
+  }
+}

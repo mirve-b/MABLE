@@ -1,0 +1,695 @@
+/* ------------------------------------------------------------------
+   Home page flow: native scroll, every section in normal document flow.
+   Loaded after hero.css / sheet.css so these rules win.
+------------------------------------------------------------------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* scattered intro pixels and off-frame collage scraps must never widen the page */
+.stage {
+  overflow-x: clip;
+}
+
+/* ---------- statement ---------- */
+
+.hero-track {
+  height: auto;
+}
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+}
+
+.hero-mark {
+  width: min(1320px, 94vw);
+}
+
+.hero-beat {
+  margin: 0;
+  gap: clamp(16px, 2.4vh, 28px);
+  font: inherit;
+}
+
+.hero-line {
+  display: block;
+  font-size: clamp(22px, 4.15vw, 76px);
+  line-height: 1.08;
+}
+
+.hero-line-row {
+  height: 1.08em;
+  padding-top: 0.04em;
+}
+
+.hero-sub {
+  display: block;
+  max-width: 64ch;
+  font-size: clamp(13px, 1.2vw, 19px);
+  letter-spacing: 0.2em;
+  line-height: 1.5;
+  color: #f3b4cf;
+}
+
+.hero-cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(28px, 7vh, 72px);
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  color: #d7bdc7;
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+
+.hero-cue i {
+  display: block;
+  width: 12px;
+  height: 11px;
+  background-color: #fe63a0;
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  animation: cue-drop 1.4s steps(4, end) infinite;
+}
+
+@keyframes cue-drop {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+/* ---------- marquee tapes ---------- */
+
+.marquee {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  height: clamp(200px, 34vh, 340px);
+  margin-top: -55vh;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.marquee-band {
+  grid-area: 1 / 1;
+  width: 120vw;
+  overflow: hidden;
+  padding: 0.5em 0 0.42em;
+  font-family: "42dot Sans", "Arial Black", sans-serif;
+  font-weight: 800;
+  font-size: clamp(26px, 4.2vw, 70px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.marquee-band.is-pink {
+  z-index: 2;
+  background: #fe63a0;
+  color: #0b0b0b;
+  transform: rotate(-3deg);
+  box-shadow: 0 10px 0 #0b0b0b;
+}
+
+.marquee-band.is-ink {
+  z-index: 1;
+  background: #0b0b0b;
+  color: #ffc1dc;
+  border-top: 2px solid #ffc1dc;
+  border-bottom: 2px solid #ffc1dc;
+  transform: rotate(3.4deg);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.marquee-run {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding-right: 0.5em;
+}
+
+.marquee-word {
+  white-space: nowrap;
+}
+
+.marquee-star {
+  display: block;
+  width: 0.78em;
+  height: auto;
+}
+
+.marquee-band.is-pink .marquee-star {
+  filter: brightness(0);
+}
+
+/* ---------- textured paper run (team → footer) ---------- */
+
+.paper-run {
+  position: relative;
+  z-index: 3;
+  display: block;
+  background-color: #0e0d0e;
+  background-image: url("./assets/deco/bg-2.webp");
+  background-position: center top;
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+}
+
+/* ---------- team: the besties ---------- */
+
+.team-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(5rem, 11vh, 7rem) 0 0;
+  overflow: hidden;
+}
+
+.team-section .team-title {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  margin: 0 0 clamp(8px, 2vh, 24px);
+}
+
+.team-section .team-title .hero-line {
+  font-size: clamp(28px, 4.6vw, 70px);
+  letter-spacing: 0.16em;
+}
+
+/* One composition box; every piece is placed in % of it, so it holds its shape at any size. */
+.tm-comp {
+  position: relative;
+  container-type: inline-size;
+  width: min(94vw, calc(min(80vh, 780px) * 766 / 630));
+  aspect-ratio: 766 / 630;
+  margin-top: auto;
+}
+
+.tm-comp > * {
+  position: absolute;
+  margin: 0;
+}
+
+.tm-star {
+  left: 25%;
+  top: 15%;
+  z-index: 0;
+  width: 49%;
+  height: auto;
+  opacity: 0.75;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tm-figure {
+  bottom: 0;
+  width: auto;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.tm-mirve {
+  left: 46%;
+  z-index: 1;
+  height: 94%;
+}
+
+.tm-ayesha {
+  left: 29%;
+  z-index: 2;
+  height: 93%;
+}
+
+.tm-bubble {
+  left: 10%;
+  top: 3%;
+  z-index: 3;
+  width: 22.5%;
+  height: auto;
+  pointer-events: none;
+}
+
+.tm-copy {
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.tm-copy.is-ayesha {
+  left: 5%;
+  top: 39%;
+  width: 32%;
+}
+
+.tm-copy.is-mirve {
+  left: 61%;
+  top: 25.5%;
+  width: 33%;
+}
+
+.tm-copy p {
+  margin: 0;
+}
+
+.tm-name {
+  color: #f7f4f2;
+  font-family: Arapey, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(28px, 5.8cqw, 60px);
+  line-height: 1;
+}
+
+.tm-copy .tm-bio {
+  margin-top: 2.2cqw;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1.4cqw 2cqw 1.6cqw;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 10px;
+  background: rgb(38 36 38 / 0.82);
+  color: #e9e6e7;
+  font-family: "42dot Sans", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  font-size: clamp(11px, 2cqw, 18px);
+  line-height: 1.35;
+}
+
+.tm-copy .tm-role {
+  margin-top: 1.8cqw;
+  color: #ecc3d3;
+  font-family: Barrio, system-ui, sans-serif;
+  font-size: clamp(13px, 2.7cqw, 26px);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+/* ---------- design x code billboard ---------- */
+
+.billboard-section {
+  position: relative;
+  height: 280vh;
+}
+
+.billboard-stage {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.billboard-stage > .billboard-svg,
+.billboard-stage > .billboard-card {
+  grid-area: 1 / 1;
+}
+
+.billboard-section .billboard-svg {
+  display: block;
+  width: 94vw;
+  height: auto;
+  max-height: 84vh;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.billboard-section .billboard-card {
+  z-index: 3;
+  width: min(760px, 88vw);
+  border: 3px solid #0b0b0b;
+  background: rgb(10 8 10 / 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 8px 8px 0 #fe63a0;
+  will-change: transform;
+}
+
+.billboard-section .sheet-star {
+  z-index: 4;
+}
+
+.billboard-section .billboard-star-a {
+  left: 8%;
+  top: 18%;
+  width: clamp(48px, 6vw, 96px);
+}
+
+.billboard-section .billboard-star-b {
+  right: 8%;
+  bottom: 14%;
+  width: clamp(30px, 3.4vw, 56px);
+}
+
+.billboard-section.is-still {
+  height: auto;
+}
+
+.billboard-section.is-still .billboard-stage {
+  position: relative;
+}
+
+/* ---------- services / work / after: plain document flow ---------- */
+
+.stack-root .sheet,
+.stack-root .made-layer,
+.stack-root .after-layer {
+  position: relative;
+  top: auto;
+  height: auto;
+  margin: 0;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.stack-root .made-layer {
+  z-index: 4;
+}
+
+.stack-root .after-layer {
+  background: transparent;
+}
+
+.stack-root .sheet {
+  min-height: 0;
+}
+
+.made-frame {
+  height: auto;
+  min-height: 70vh;
+  padding-bottom: 56px;
+}
+
+.sheet-paper {
+  min-height: 0;
+  padding: clamp(80px, 12vh, 140px) 0 clamp(80px, 12vh, 140px);
+}
+
+.service-cards {
+  gap: clamp(20px, 2.6vw, 40px);
+}
+
+/* clean dark cards: thin pastel outline, a polka-dot strip, pixel corner */
+.service-card {
+  --tone: #fe63a0;
+  overflow: hidden;
+  padding: 44px 26px 30px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 16px;
+  background: #0b0a0b;
+  transition:
+    translate 0.35s cubic-bezier(0.2, 0.9, 0.2, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.service-card:nth-child(2) {
+  --tone: #a3b8c8;
+}
+
+.service-card:nth-child(3) {
+  --tone: #d5d0ad;
+}
+
+.service-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 22px;
+  background-image: radial-gradient(color-mix(in srgb, var(--tone) 70%, transparent) 1.5px, transparent 2px);
+  background-size: 11px 11px;
+  background-position: 3px 4px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.service-card::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 10px;
+  height: 9px;
+  background-color: var(--tone);
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+.service-card .service-title {
+  color: var(--tone);
+}
+
+.service-card .service-detail {
+  border: 1px solid var(--tone);
+  background: transparent;
+  color: var(--tone);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .service-card:hover {
+    translate: 0 -6px;
+    border-color: var(--tone);
+    box-shadow: 0 18px 50px -18px var(--tone);
+  }
+
+  .service-card .service-detail:hover {
+    background: var(--tone);
+    color: #0b0b0b;
+  }
+}
+
+/* ---------- the ending: weird manifesto + invite note ---------- */
+
+.weird {
+  margin: clamp(80px, 14vh, 160px) auto 0;
+  max-width: 980px;
+  padding: 0 24px;
+  color: #d7bdc7;
+}
+
+.weird .weird-title {
+  margin: 0 0 28px;
+  color: #fe63a0;
+  font-family: Barrio, system-ui, sans-serif;
+  font-size: clamp(34px, 5.4vw, 84px);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: none;
+  text-shadow: 0.05em 0.05em 0 #0b0b0b;
+}
+
+.weird p:not(.weird-title) {
+  font-size: clamp(16px, 1.4vw, 21px);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+
+.invite {
+  position: relative;
+  max-width: 920px;
+  margin: clamp(90px, 14vh, 160px) auto 0;
+  padding: clamp(52px, 7vw, 88px) clamp(24px, 5vw, 72px) clamp(46px, 6vw, 76px);
+  overflow: hidden;
+  border: 1px solid rgb(254 99 160 / 0.6);
+  border-radius: 24px;
+  background-color: #0b0a0b;
+  background-image: radial-gradient(rgb(254 99 160 / 0.18) 1.5px, transparent 2px);
+  background-size: 22px 22px;
+  color: #f4ecef;
+}
+
+.invite h2 {
+  font-family: "42dot Sans", "Arial Black", sans-serif;
+  font-weight: 800;
+  font-size: clamp(30px, 4.6vw, 64px);
+  line-height: 1;
+  letter-spacing: 0;
+  color: #fe63a0;
+}
+
+.invite p {
+  font-size: clamp(16px, 1.5vw, 21px);
+  color: #d7bdc7;
+}
+
+.invite-btn {
+  margin-top: 34px;
+  padding: 16px 34px 17px;
+  background: #fe63a0;
+  color: #0b0b0b;
+  font-size: clamp(15px, 1.3vw, 19px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition:
+    translate 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.invite-btn:hover {
+  background: #fe63a0;
+  translate: 0 -3px;
+  box-shadow: 0 14px 40px -10px #fe63a0;
+}
+
+/* ---------- phones ---------- */
+
+.hero-line .is-phone {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .hero-line .is-desk {
+    display: none;
+  }
+
+  .hero-line .is-phone {
+    display: block;
+  }
+
+  .hero-line {
+    font-size: clamp(22px, 7.4vw, 40px);
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    padding: 0 12px;
+  }
+
+  .marquee {
+    height: 190px;
+    margin-top: -40vh;
+  }
+
+  .invite {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+
+  .team-section .team-title .hero-line {
+    font-size: clamp(20px, 5.8vw, 30px);
+    letter-spacing: 0.12em;
+  }
+
+  /* phones: names + bios sit above the figures instead of beside them */
+  .tm-comp {
+    width: 100vw;
+    aspect-ratio: 375 / 560;
+  }
+
+  .tm-star {
+    left: 12%;
+    top: 30%;
+    width: 76%;
+  }
+
+  .tm-mirve {
+    left: 46%;
+    height: 72%;
+  }
+
+  .tm-ayesha {
+    left: 20%;
+    height: 71%;
+  }
+
+  .tm-bubble {
+    left: 3%;
+    top: 36%;
+    width: 30%;
+  }
+
+  .tm-copy.is-ayesha {
+    left: 4%;
+    top: 0;
+    width: 44%;
+  }
+
+  .tm-copy.is-mirve {
+    left: auto;
+    right: 4%;
+    top: 0;
+    width: 44%;
+  }
+
+  .tm-name {
+    font-size: 30px;
+  }
+
+  .tm-copy .tm-bio {
+    margin-top: 8px;
+    padding: 7px 9px 8px;
+    font-size: 12px;
+  }
+
+  .tm-copy .tm-role {
+    margin-top: 7px;
+    font-size: 14px;
+  }
+
+  .billboard-section {
+    height: 220vh;
+  }
+
+  .billboard-section .billboard-svg {
+    align-self: center;
+    width: 96vw;
+    margin-top: -18vh;
+  }
+
+  .billboard-section .billboard-card {
+    align-self: end;
+    margin-bottom: 18vh;
+    padding: 20px 18px 18px;
+    border-radius: 22px;
+  }
+
+}

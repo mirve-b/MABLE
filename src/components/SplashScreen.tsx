@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSmoothGridScale } from "../hooks/useSmoothGridScale";
 import { isCoarsePointer } from "../perf";
-import { CursorFx, useCursorFx } from "./CursorFx";
+import { useCursorFx } from "../hooks/useCursorFx";
+import { CursorFx } from "./CursorFx";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
 const HOLD_MS = 3000;

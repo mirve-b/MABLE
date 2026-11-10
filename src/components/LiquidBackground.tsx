@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PALETTE } from "../grid/colors";
 import { isCoarsePointer, pixelRatio } from "../perf";
 
@@ -110,6 +111,31 @@ type Props = {
   className?: string;
 };
 
+export function WandLayer() {
+  const [host] = useState(() => {
+    const el = document.createElement("div");
+    el.className = "wand-layer";
+    el.setAttribute("aria-hidden", "true");
+    return el;
+  });
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const slot = document.querySelector(".intro-wand-slot");
+      if (!slot || host.parentElement === slot) return;
+      slot.appendChild(host);
+    };
+    place();
+    const frame = requestAnimationFrame(place);
+    return () => {
+      cancelAnimationFrame(frame);
+      host.remove();
+    };
+  }, [host]);
+
+  return createPortal(<LiquidBackground className="hero-liquid" />, host);
+}
+
 export function LiquidBackground({ className }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -118,6 +144,7 @@ export function LiquidBackground({ className }: Props) {
     const frame = canvas?.parentElement;
     const host = frame?.parentElement ?? frame;
     if (!canvas || !frame || !host) return;
+    if (isCoarsePointer()) return;
 
     const gl = canvas.getContext("webgl", {
       alpha: true,
@@ -203,7 +230,6 @@ export function LiquidBackground({ className }: Props) {
     const cursor = { x: 0.5, y: 0.5 };
     const from = { x: 0.5, y: 0.5 };
     let stamp = 0;
-    let occluded = false;
     let raf = 0;
     let cellPx = 8;
     const started = performance.now();
@@ -217,8 +243,10 @@ export function LiquidBackground({ className }: Props) {
       timers.add(id);
     };
 
+    const wandLive = () => document.documentElement.classList.contains("is-wand");
+
     const spawnStitch = () => {
-      if (occluded || document.hidden) return;
+      if (!wandLive() || document.hidden) return;
       const count = Math.random() > 0.72 ? 2 : 1;
       for (let n = 0; n < count; n += 1) {
         const bit = document.createElement("span");
@@ -268,18 +296,6 @@ export function LiquidBackground({ className }: Props) {
       gl.viewport(0, 0, canvas.width, canvas.height);
     };
 
-    const refreshOcclusion = () => {
-      const rect = host.getBoundingClientRect();
-      if (rect.bottom <= 8 || rect.top >= window.innerHeight * 0.82) {
-        occluded = true;
-        return;
-      }
-      const top = Math.max(0, rect.top);
-      const bottom = Math.min(window.innerHeight, rect.bottom);
-      const el = document.elementFromPoint(window.innerWidth * 0.5, (top + bottom) * 0.5);
-      occluded = !el || !host.contains(el);
-    };
-
     const draw = (now: number) => {
       const writeIndex = 1 - readIndex;
       gl.disable(gl.BLEND);
@@ -316,6 +332,7 @@ export function LiquidBackground({ className }: Props) {
 
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") return;
+      if (!wandLive()) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 1 || rect.height < 1) return;
       const x = (event.clientX - rect.left) / rect.width;
@@ -340,13 +357,10 @@ export function LiquidBackground({ className }: Props) {
 
     if (!reduce && !coarse) {
       window.addEventListener("pointermove", onMove, { passive: true });
-      window.addEventListener("scroll", refreshOcclusion, { passive: true });
-      window.addEventListener("resize", refreshOcclusion);
-      refreshOcclusion();
       scheduleStitch();
       const loop = (now: number) => {
         raf = requestAnimationFrame(loop);
-        if (document.hidden || occluded) return;
+        if (document.hidden || !wandLive()) return;
         draw(now);
       };
       raf = requestAnimationFrame(loop);
@@ -359,8 +373,6 @@ export function LiquidBackground({ className }: Props) {
       observer.disconnect();
       canvas.removeEventListener("webglcontextlost", onLost);
       window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("scroll", refreshOcclusion);
-      window.removeEventListener("resize", refreshOcclusion);
       gl.deleteBuffer(buffer);
       gl.deleteProgram(program);
       gl.deleteProgram(trailProgram);

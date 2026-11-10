@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import besties from "../assets/deco/besties.webp";
-
-gsap.registerPlugin(ScrollTrigger);
-import { PALETTE } from "../grid/colors";
+import { gsap, ScrollTrigger } from "../gsap";
 import { useSmoothGridScale } from "../hooks/useSmoothGridScale";
+import { isCoarsePointer } from "../perf";
+import { playIntroWave } from "../introTrail";
+import { attachTextSparkles } from "../textSparkles";
 import { PixelGrid, type GridPhase } from "./PixelGrid";
 
 const BABY_PINK = "#FFC1DC";
@@ -13,18 +12,50 @@ const HOT_PINK = "#FE63A0";
 
 function noop() {}
 
-export function Intro() {
+function mixPink(t: number) {
+  const clamped = Math.max(0, Math.min(1, t));
+  const ch = (from: number, to: number) => Math.round(from + (to - from) * clamped);
+  return `rgb(${ch(254, 255)}, ${ch(99, 193)}, ${ch(160, 220)})`;
+}
+
+function setIntroReady(on: boolean) {
+  document.documentElement.classList.toggle("is-intro-ready", on);
+}
+
+function paintMark(cluster: HTMLElement, color: string, lockPixels = false) {
+  cluster.style.setProperty("--pixel", color);
+  const intro = cluster.closest(".intro");
+  if (intro instanceof HTMLElement) intro.style.setProperty("--pixel", color);
+  const grid = cluster.querySelector(".pixel-grid");
+  if (grid instanceof HTMLElement) grid.style.setProperty("--pixel", color);
+  if (!lockPixels) return;
+  const bits = cluster.querySelectorAll<HTMLElement>(".pixel-cross.is-on");
+  for (let i = 0; i < bits.length; i += 1) {
+    bits[i]!.style.setProperty("background-color", color, "important");
+  }
+}
+
+function clearLockedPixels(cluster: HTMLElement) {
+  const bits = cluster.querySelectorAll<HTMLElement>(".pixel-cross");
+  for (let i = 0; i < bits.length; i += 1) {
+    bits[i]!.style.removeProperty("background-color");
+  }
+}
+
+export function Intro({ splash = true }: { splash?: boolean }) {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const [phase, setPhase] = useState<GridPhase>(reduce ? "idle" : "enter");
+  const [phase, setPhase] = useState<GridPhase>(reduce || !splash ? "idle" : "enter");
   const slotRef = useRef<HTMLDivElement>(null);
   const clusterRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const bestiesRef = useRef<HTMLImageElement>(null);
-  const arrowRef = useRef<HTMLSpanElement>(null);
-  const cueRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const glintRef = useRef<HTMLDivElement>(null);
-  const [glintsOn, setGlintsOn] = useState(false);
+  const trailRef = useRef<HTMLCanvasElement>(null);
+  const [glintsOn, setGlintsOn] = useState(!reduce && !splash);
+  const [glitch, setGlitch] = useState(reduce || !splash);
+  // Impatient visitors: any scroll/key/tap during the splash fast-forwards it instead of being ignored.
+  const hurry = useRef<{ wanted: boolean; run?: () => void }>({ wanted: false });
 
   useSmoothGridScale(clusterRef, frameRef, {
     mode: "width",
@@ -34,6 +65,55 @@ export function Intro() {
   });
 
   const onEntered = useCallback(() => setPhase("idle"), []);
+
+  useLayoutEffect(() => {
+    if (!splash || reduce) return;
+    const html = document.documentElement;
+    html.classList.add("is-intro-lock");
+    window.scrollTo(0, 0);
+    const nav = document.querySelector(".nav");
+    if (nav) gsap.set(nav, { autoAlpha: 0, pointerEvents: "none" });
+
+    const locked = () => html.classList.contains("is-intro-lock");
+    const rush = () => {
+      hurry.current.wanted = true;
+      hurry.current.run?.();
+    };
+    const halt = (event: Event) => {
+      if (!locked()) return;
+      event.preventDefault();
+      rush();
+    };
+    const haltKey = (event: KeyboardEvent) => {
+      if (!locked()) return;
+      if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) {
+        event.preventDefault();
+        rush();
+      }
+    };
+    const hold = () => {
+      if (locked() && window.scrollY !== 0) window.scrollTo(0, 0);
+    };
+    window.addEventListener("wheel", halt, { passive: false, capture: true });
+    window.addEventListener("touchmove", halt, { passive: false, capture: true });
+    window.addEventListener("keydown", haltKey, { capture: true });
+    window.addEventListener("scroll", hold, { capture: true });
+    window.addEventListener("pointerdown", rush, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", rush, { capture: true } as EventListenerOptions);
+      html.classList.remove("is-intro-lock");
+      window.removeEventListener("wheel", halt, { capture: true } as EventListenerOptions);
+      window.removeEventListener("touchmove", halt, { capture: true } as EventListenerOptions);
+      window.removeEventListener("keydown", haltKey, { capture: true } as EventListenerOptions);
+      window.removeEventListener("scroll", hold, { capture: true } as EventListenerOptions);
+    };
+  }, [splash, reduce]);
+
+  useLayoutEffect(() => {
+    const cluster = clusterRef.current;
+    if (!cluster) return;
+    paintMark(cluster, reduce || !splash ? BABY_PINK : HOT_PINK);
+  }, [reduce, splash]);
 
   useLayoutEffect(() => {
     if (phase !== "idle") return;
@@ -46,109 +126,136 @@ export function Intro() {
     const drop = () => {
       const photoBox = photo.getBoundingClientRect();
       const markBox = slot.getBoundingClientRect();
-      if (photoBox.height < 40) return 0;
+      if (photoBox.height < 40) return Number(gsap.getProperty(slot, "y")) || 0;
+      const currentY = Number(gsap.getProperty(slot, "y")) || 0;
+      const phone = window.matchMedia("(max-width: 760px)").matches;
+      if (phone) {
+        return photoBox.bottom - markBox.top + 8 + currentY;
+      }
       const frameH = frameRef.current?.offsetHeight ?? markBox.height;
       const letterTop = frameH * 0.3;
-      const currentY = Number(gsap.getProperty(slot, "y")) || 0;
       return photoBox.bottom - markBox.top - letterTop - markBox.height * 0.1 - 32 + currentY;
     };
 
-    if (reduce) {
-      gsap.set(cluster, { "--pixel": HOT_PINK });
+    const place = () => {
+      gsap.set(slot, { y: drop() });
+    };
+
+    const unlock = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.classList.remove("is-intro-lock");
+      window.scrollTo(0, 0);
+      setIntroReady(true);
+      setGlintsOn(true);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        ScrollTrigger.refresh();
+      });
+    };
+
+    const showChrome = () => {
+      const reveal = gsap.timeline({ onComplete: unlock });
+      reveal.to(nav, { autoAlpha: 1, duration: 0.55, ease: "power2.out" }, 0);
+      reveal.set(nav, { pointerEvents: "auto" }, 0.1);
+    };
+
+    let tween: gsap.core.Timeline | undefined;
+    let stopWave: (() => void) | undefined;
+    const intro = cluster.closest(".intro");
+    const trail = trailRef.current;
+    const settle = 1.8;
+    const girls = 1.16;
+
+    if (reduce || !splash) {
+      if (intro instanceof HTMLElement) intro.classList.remove("is-settling");
+      paintMark(cluster, BABY_PINK);
+      clearLockedPixels(cluster);
       gsap.set(photo, { opacity: 1 });
       gsap.set(nav, { autoAlpha: 1, pointerEvents: "auto" });
-      gsap.set(slot, { y: drop });
+      place();
+      document.documentElement.classList.remove("is-intro-lock");
+      setIntroReady(true);
       setGlintsOn(true);
-      return;
+      setGlitch(true);
+    } else {
+      setIntroReady(false);
+      if (intro instanceof HTMLElement) intro.classList.add("is-settling");
+      paintMark(cluster, HOT_PINK, true);
+      gsap.set(slot, { y: 0 });
+      gsap.set(photo, { opacity: 0 });
+      gsap.set(nav, { autoAlpha: 0, pointerEvents: "none" });
+      const shade = { t: 0 };
+      tween = gsap.timeline({ delay: 0.12 });
+      tween.to(
+        shade,
+        {
+          t: 1,
+          duration: settle,
+          ease: "power2.inOut",
+          onUpdate() {
+            paintMark(cluster, mixPink(shade.t), true);
+          },
+        },
+        0,
+      );
+      tween.add(() => {
+        paintMark(cluster, BABY_PINK, true);
+        if (intro instanceof HTMLElement) intro.classList.remove("is-settling");
+        clearLockedPixels(cluster);
+        paintMark(cluster, BABY_PINK);
+        setGlitch(true);
+        if (trail) stopWave = playIntroWave(trail);
+      }, settle);
+      tween.to(photo, { opacity: 1, duration: girls, ease: "power2.out" }, settle);
+      tween.to(slot, { y: drop, duration: girls, ease: "power3.inOut" }, settle);
+      tween.add(showChrome, settle + girls + 0.28);
+      const fast = tween;
+      hurry.current.run = () => fast.timeScale(4);
+      if (hurry.current.wanted) fast.timeScale(4);
     }
 
-    const tween = gsap.timeline({ delay: 1 });
-    tween.to(
-      cluster,
-      { "--pixel": HOT_PINK, duration: 1.6, ease: "power2.inOut" },
-      0,
-    );
-    tween.to(photo, { opacity: 1, duration: 1.8, ease: "power2.out" }, 0);
-    tween.to(nav, { autoAlpha: 1, duration: 1.8, ease: "power2.out" }, 0);
-    tween.to(
-      slot,
-      { y: drop, duration: 1.8, ease: "power3.inOut" },
-      0,
-    );
-    tween.set(nav, { pointerEvents: "auto" });
-    tween.call(() => setGlintsOn(true));
+    const onPlace = () => {
+      if (tween?.isActive()) return;
+      place();
+    };
+
+    photo.addEventListener("load", onPlace);
+    window.addEventListener("resize", onPlace);
 
     return () => {
-      tween.kill();
+      photo.removeEventListener("load", onPlace);
+      window.removeEventListener("resize", onPlace);
+      stopWave?.();
+      hurry.current.run = undefined;
+      tween?.kill();
+      gsap.killTweensOf([photo, nav, slot]);
+      if (intro instanceof HTMLElement) intro.classList.remove("is-settling");
+      clearLockedPixels(cluster);
+      setIntroReady(false);
     };
-  }, [phase, reduce]);
+  }, [phase, reduce, splash]);
 
   useEffect(() => {
     const field = glintRef.current;
     if (!glintsOn || reduce || !field) return;
-
-    let cancelled = false;
-    const timers = new Set<number>();
-    const later = (fn: () => void, ms: number) => {
-      const id = window.setTimeout(() => {
-        timers.delete(id);
-        if (!cancelled) fn();
-      }, ms);
-      timers.add(id);
-    };
-
-    const spawn = () => {
-      const count = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < count; i += 1) {
-        const bit = document.createElement("span");
-        bit.className = "intro-glint";
-        bit.style.left = `${Math.random() * 100}%`;
-        bit.style.top = `${Math.random() * 100}%`;
-        bit.style.backgroundColor = PALETTE[Math.floor(Math.random() * PALETTE.length)]!;
-        const size = 8 + Math.random() * 9;
-        bit.style.width = `${size}px`;
-        bit.style.height = `${size * 0.9}px`;
-        field.appendChild(bit);
-
-        gsap.set(bit, { opacity: 1 });
-        if (Math.random() < 0.5) {
-          gsap.to(bit, {
-            opacity: 0,
-            duration: 0.04,
-            delay: gsap.utils.random(0.04, 0.1),
-            yoyo: true,
-            repeat: 1,
-          });
-        }
-        gsap.to(bit, {
-          opacity: 0,
-          duration: 0.06,
-          delay: gsap.utils.random(0.08, 0.34),
-          ease: "steps(2)",
-          onComplete: () => bit.remove(),
-        });
-      }
-    };
-
-    const tick = () => {
-      if (window.scrollY < 24) spawn();
-      later(tick, 520 + Math.random() * 780);
-    };
-    later(tick, 60);
-
-    return () => {
-      cancelled = true;
-      timers.forEach((id) => window.clearTimeout(id));
-      gsap.killTweensOf(field.querySelectorAll(".intro-glint"));
-      field.replaceChildren();
-    };
+    return attachTextSparkles({
+      field,
+      anchor: () => bestiesRef.current,
+      around: () => slotRef.current,
+      halo: true,
+      density: "intro",
+      live: () => {
+        const hero = document.querySelector(".hero");
+        const heroTop = hero?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+        return heroTop > 16;
+      },
+    });
   }, [glintsOn, reduce]);
 
   useLayoutEffect(() => {
     if (reduce) return;
     const lift = liftRef.current;
     const photo = bestiesRef.current;
-    const cue = cueRef.current;
     const hero = document.querySelector(".hero");
     if (!lift || !photo || !hero) return;
 
@@ -171,7 +278,23 @@ export function Intro() {
     let released = false;
     let scattered = false;
     let liftY = 0;
+    let lastBurst = -1;
+    const coarse = isCoarsePointer();
     const ctx = gsap.context(() => {
+      gsap.fromTo(
+        photo,
+        { "--besties-shade": 1 },
+        {
+          "--besties-shade": 0.22,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top bottom",
+            end: "top top",
+            scrub: 0.45,
+          },
+        },
+      );
       ScrollTrigger.create({
         trigger: hero,
         start: "top bottom",
@@ -191,7 +314,9 @@ export function Intro() {
           if (p < 0.64) dest = Math.min(dest, (1 - p) * view - height - 16);
           liftY = dest - naturalTop;
           lift.style.transform = `translate3d(0, ${liftY}px, 0)`;
+          lift.style.visibility = p > 0.9 ? "hidden" : "visible";
 
+          photo.style.setProperty("--besties-shade", String(1 - p * 0.78));
           if (p > 0.01) {
             if (!released) {
               gsap.killTweensOf(photo, "opacity");
@@ -203,11 +328,12 @@ export function Intro() {
             photo.style.opacity = "1";
           }
 
-          if (cue) cue.style.opacity = p <= 0 ? "1" : String(Math.max(0, 1 - p / 0.14));
-
           if (p >= 0.64) {
             scattered = true;
             const t = Math.min(1, (p - 0.64) / 0.18);
+            const q = coarse ? Math.round(t * 10) : -1;
+            if (coarse && q === lastBurst) return;
+            lastBurst = q;
             for (let i = 0; i < bursts.length; i += 1) {
               const bit = bursts[i]!;
               bit.el.style.transform = `translate3d(${bit.dx * t}px, ${bit.dy * t}px, 0)`;
@@ -222,6 +348,7 @@ export function Intro() {
             }
           } else if (scattered) {
             scattered = false;
+            lastBurst = -1;
             for (let i = 0; i < bursts.length; i += 1) {
               const el = bursts[i]!.el;
               el.style.transform = "";
@@ -234,26 +361,16 @@ export function Intro() {
       });
     }, lift);
 
-    return () => ctx.revert();
-  }, [reduce]);
-
-  useLayoutEffect(() => {
-    if (reduce || !arrowRef.current) return;
-    const bounce = gsap.to(arrowRef.current, {
-      y: 12,
-      duration: 0.75,
-      ease: "power1.inOut",
-      yoyo: true,
-      repeat: -1,
-    });
     return () => {
-      bounce.kill();
+      photo.style.removeProperty("--besties-shade");
+      ctx.revert();
     };
   }, [reduce]);
 
   return (
     <section className="intro" aria-label="Intro">
-      <div className="fx-slot" aria-hidden="true" />
+      <canvas className="intro-trail" ref={trailRef} aria-hidden="true" />
+      <div className="intro-wand-slot" aria-hidden="true" />
       <div className="intro-glints" ref={glintRef} />
       <img
         ref={bestiesRef}
@@ -263,15 +380,12 @@ export function Intro() {
       />
       <div className="intro-mark" ref={slotRef}>
         <div className="intro-lift" ref={liftRef}>
-          <div
-            className="splash-cluster"
-            ref={clusterRef}
-            style={{ ["--pixel" as string]: reduce ? HOT_PINK : BABY_PINK }}
-          >
+          <div className="splash-cluster" ref={clusterRef}>
             <div className="splash-grid-frame" ref={frameRef}>
               <PixelGrid
                 mask="mable"
                 phase={phase}
+                glitch={glitch}
                 onEntered={onEntered}
                 onLeft={noop}
               />
@@ -289,13 +403,6 @@ export function Intro() {
             </p>
           </div>
         </div>
-      </div>
-      <div className="scroll-cue" ref={cueRef}>
-        <span className="scroll-cue-arrow" ref={arrowRef}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 8.5 L12 15.5 L19 8.5" />
-          </svg>
-        </span>
       </div>
     </section>
   );

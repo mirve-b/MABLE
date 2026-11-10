@@ -1,3 +1,9 @@
+@property --pixel {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffc1dc;
+}
+
 :root {
   --grid-scale: min(
     1.85,
@@ -46,6 +52,18 @@ body,
   overflow: hidden;
 }
 
+html.is-contact,
+html.is-contact body,
+html.is-contact #root {
+  overflow: auto;
+}
+
+html.is-contact .nav {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
 body {
   background: var(--page-bg);
   color: var(--pixel);
@@ -75,6 +93,28 @@ body {
 }
 
 
+.logo-burst {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: #000;
+  pointer-events: auto;
+  overflow: hidden;
+  --pixel: #ffc1dc;
+}
+
+.logo-burst-mark {
+  position: relative;
+  z-index: 3;
+  width: min(380px, 50vw);
+}
+
+.logo-burst .splash-grid-frame {
+  overflow: visible;
+}
+
 .splash-cluster {
   display: flex;
   flex-direction: column;
@@ -99,7 +139,7 @@ body {
   pointer-events: none;
   will-change: transform;
   backface-visibility: hidden;
-  contain: layout style;
+  contain: layout;
 }
 
 .pixel-cross {
@@ -129,6 +169,10 @@ body {
 .pixel-grid.is-idle .pixel-cross.is-on {
   opacity: 1;
   animation: none;
+}
+
+.pixel-grid.is-idle .pixel-cross.is-on:not(.is-glitching) {
+  background-color: var(--pixel);
 }
 
 .pixel-cross.is-leaving {
@@ -163,6 +207,38 @@ body {
   100% {
     opacity: 1;
     background-color: var(--pixel);
+  }
+}
+
+.intro .pixel-cross.is-on {
+  animation-name: tv-pop-intro;
+}
+
+.intro.is-settling .pixel-cross.is-on {
+  animation: none !important;
+  opacity: 1 !important;
+  background-color: var(--pixel) !important;
+}
+
+@keyframes tv-pop-intro {
+  0% {
+    opacity: 0;
+    background-color: #d9d9d9;
+  }
+  25% {
+    opacity: 1;
+    background-color: #ffc1dc;
+  }
+  45% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 1;
+    background-color: #ffc1dc;
+  }
+  100% {
+    opacity: 1;
+    background-color: #ffc1dc;
   }
 }
 
@@ -274,6 +350,41 @@ html.is-site * {
   cursor: none;
 }
 
+html.is-work .wand-layer,
+html.is-after .wand-layer,
+html:has(.hero.is-team) .wand-layer,
+html:has(.hero.is-code) .wand-layer {
+  display: none !important;
+}
+
+.wand-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+html.is-wand .wand-layer {
+  opacity: 1;
+  visibility: visible;
+}
+
+.intro-wand-slot {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.intro-wand-slot .wand-layer {
+  position: absolute;
+  z-index: auto;
+}
+
 html.is-site,
 html.is-site body,
 html.is-site #root {
@@ -283,6 +394,23 @@ html.is-site #root {
 
 html.is-site {
   scroll-behavior: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+}
+
+html.is-intro-lock,
+html.is-intro-lock body,
+html.is-intro-lock #root {
+  overflow: hidden !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+html.is-stack-lock,
+html.is-hero-lock {
+  overscroll-behavior: none;
 }
 
 .stage {
@@ -307,6 +435,16 @@ html.is-site {
   display: block;
   opacity: 0;
   pointer-events: none;
+}
+
+@media (pointer: coarse) {
+  .scroll-glow {
+    will-change: opacity, clip-path;
+  }
+
+  .scroll-pixel-layer {
+    display: none;
+  }
 }
 
 .scroll-pixel-layer {
@@ -349,23 +487,46 @@ html.is-site {
   height: 100vh;
   display: grid;
   place-items: center;
-  background: #000;
+  background: #000000;
   overflow: hidden;
   cursor: none;
+  --pixel: #ffc1dc;
+}
+
+.field-span .intro {
+  position: relative;
+  top: auto;
+  z-index: 2;
+  height: var(--intro-h, 100vh);
+}
+
+.intro-trail {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .intro-glints {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   overflow: hidden;
 }
 
-.intro-glint {
+.text-sparkle {
   position: absolute;
   display: block;
-  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.text-sparkle.is-cross {
   background-color: #fe63a0;
   -webkit-mask-image: url("./assets/pixel.svg");
   mask-image: url("./assets/pixel.svg");
@@ -375,11 +536,17 @@ html.is-site {
   mask-position: center;
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
+  filter: drop-shadow(0 0 5px rgb(254 99 160 / 0.55));
+}
+
+.text-sparkle.is-glint {
+  background-color: #ffc1dc;
+  box-shadow: 0 0 8px rgb(255 193 220 / 0.7);
 }
 
 .intro-besties {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   left: 50%;
   top: 50%;
   width: min(700px, 64vw);
@@ -388,13 +555,14 @@ html.is-site {
   transform: translate(-58%, -50%);
   object-fit: contain;
   opacity: 0;
+  filter: brightness(var(--besties-shade, 1));
   pointer-events: none;
   user-select: none;
 }
 
 .intro-mark {
   position: relative;
-  z-index: 3;
+  z-index: 4;
   width: min(380px, 50vw);
 }
 
@@ -425,37 +593,55 @@ html.is-site {
   color: #d9d9d9;
 }
 
-.scroll-cue {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: 28px;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  margin: 0;
-  transform: translateX(-50%);
-  color: #d9d9d9;
-  font-family: Outfit, sans-serif;
-  font-weight: 300;
-  font-size: 15px;
-  letter-spacing: 0.12em;
-  pointer-events: none;
+.intro-tagline.is-out {
+  animation: tag-glitch-out 0.55s steps(4, end) both;
 }
 
-.scroll-cue svg {
-  display: block;
-  width: 22px;
-  height: 22px;
-  overflow: visible;
+@keyframes tag-glitch-out {
+  0% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0.12;
+  }
+  40% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 0;
+  }
+  76% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
-.scroll-cue path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+@media (max-width: 760px) {
+  .intro-besties {
+    top: 38%;
+    left: 50%;
+    width: min(640px, 96vw);
+    max-height: 52vh;
+    transform: translate(-50%, -50%);
+  }
+
+  .intro-mark,
+  .logo-burst-mark {
+    width: min(360px, 92vw);
+  }
+
+  .intro-tagline {
+    margin-top: calc(var(--mark-scale, 0.67) * -52px);
+    font-size: clamp(7px, 2.1vw, 10px);
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  .intro-space {
+    width: 0.22em;
+  }
 }
 
 @media (hover: none), (pointer: coarse) {

@@ -91,6 +91,10 @@ export function usePixelGlitches(
 
     const tick = () => {
       if (cancelled) return;
+      if (coarse && window.scrollY > 12) {
+        later(tick, 400);
+        return;
+      }
       if (Math.random() < 0.28) {
         target = coarse ? 1 : Math.random() < 0.5 ? 2 : 3;
       }

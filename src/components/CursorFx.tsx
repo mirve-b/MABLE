@@ -1,44 +1,14 @@
-import { useEffect, useState, type MouseEvent, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
-import { motion, useMotionValue, type MotionValue } from "motion/react";
-import { PALETTE } from "../grid/colors";
-import { isCoarsePointer } from "../perf";
+import { motion, type MotionValue } from "motion/react";
+import type { StarBurst } from "../hooks/useCursorFx";
 
-type StarBurst = {
-  id: number;
-  x: number;
-  y: number;
-  angle: number;
-  distance: number;
-  size: number;
-  color: string;
-  duration: number;
-  rotate: number;
+type CursorFxProps = {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+  visible: boolean;
+  bursts: StarBurst[];
+  onBurstDone: (id: number) => void;
 };
-
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
-
-function pick<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)]!;
-}
-
-function spawnStars(x: number, y: number): StarBurst[] {
-  const origin = Math.random() * 360;
-  const stamp = Date.now();
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: stamp + i,
-    x,
-    y,
-    angle: origin + i * 72 + rand(-22, 22),
-    distance: rand(48, 170),
-    size: rand(8, 22),
-    color: pick(PALETTE),
-    duration: rand(0.45, 0.95),
-    rotate: rand(-50, 50),
-  }));
-}
 
 function StarShape({ size, color }: { size: number; color: string }) {
   return (
@@ -53,14 +23,6 @@ function StarShape({ size, color }: { size: number; color: string }) {
     </svg>
   );
 }
-
-type CursorFxProps = {
-  x: MotionValue<number>;
-  y: MotionValue<number>;
-  visible: boolean;
-  bursts: StarBurst[];
-  onBurstDone: (id: number) => void;
-};
 
 export function CursorFx({ x, y, visible, bursts, onBurstDone }: CursorFxProps) {
   return createPortal(
@@ -104,68 +66,4 @@ export function CursorFx({ x, y, visible, bursts, onBurstDone }: CursorFxProps) 
     </div>,
     document.body,
   );
-}
-
-export function useCursorFx() {
-  const x = useMotionValue(-80);
-  const y = useMotionValue(-80);
-  const [visible, setVisible] = useState(false);
-  const [bursts, setBursts] = useState<StarBurst[]>([]);
-
-  const onPointerMove = (event: PointerEvent<HTMLElement>) => {
-    if (event.pointerType !== "mouse") return;
-    x.set(event.clientX);
-    y.set(event.clientY);
-    if (!visible) setVisible(true);
-  };
-
-  const onPointerLeave = () => setVisible(false);
-
-  useEffect(() => {
-    if (isCoarsePointer()) return;
-    const move = (event: globalThis.PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      x.set(event.clientX);
-      y.set(event.clientY);
-      setVisible(true);
-    };
-    const leave = () => setVisible(false);
-    const click = (event: globalThis.MouseEvent) => {
-      setBursts((current) => [
-        ...current,
-        ...spawnStars(event.clientX, event.clientY),
-      ]);
-    };
-
-    window.addEventListener("pointermove", move);
-    document.documentElement.addEventListener("pointerleave", leave);
-    window.addEventListener("click", click);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      document.documentElement.removeEventListener("pointerleave", leave);
-      window.removeEventListener("click", click);
-    };
-  }, [x, y]);
-
-  const burstAt = (event: MouseEvent<HTMLElement>) => {
-    setBursts((current) => [
-      ...current,
-      ...spawnStars(event.clientX, event.clientY),
-    ]);
-  };
-
-  const onBurstDone = (id: number) => {
-    setBursts((current) => current.filter((star) => star.id !== id));
-  };
-
-  return {
-    x,
-    y,
-    visible,
-    bursts,
-    onPointerMove,
-    onPointerLeave,
-    burstAt,
-    onBurstDone,
-  };
 }

@@ -1,33 +1,63 @@
-import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-import about from "../assets/deco/about.webp";
-import buttonBlue from "../assets/deco/button-blue.webp";
-import buttonPink from "../assets/deco/button-pink.webp";
-import contact from "../assets/deco/contact.webp";
-import lemon from "../assets/deco/lemon.webp";
-import portfolio from "../assets/deco/portfolio.webp";
-import rabbit from "../assets/deco/rabbit-watercolor.webp";
-import services from "../assets/deco/services.webp";
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import star from "../assets/deco/star.webp";
-import stickyPink from "../assets/deco/sticky-pink.webp";
-import stickyYellow from "../assets/deco/sticky-yellow.webp";
-import { LiquidBackground } from "./LiquidBackground";
+import { GLOW_INNER, GLOW_STEP } from "../grid/constants";
+import { gsap } from "../gsap";
+import { PINK, riseLetters } from "../heroPlay";
+import { isCoarsePointer } from "../perf";
+import { attachTextSparkles } from "../textSparkles";
 import "../hero.css";
 
-const LINES = ["From zero to out", "of this world"];
-const GLITCH = ["#A3B8C8", "#D5D0AD", "#FFC1DC", "#D9D9D9", "#D7BDC7", "#FE63A0"];
+function edgeHash(x: number, y: number) {
+  let n = (x * 374761393 + y * 668265263) | 0;
+  n = (n ^ (n >>> 13)) * 1274126177;
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
 
-function HeroLine({ text }: { text: string }) {
+function paintHeroEdge(canvas: HTMLCanvasElement) {
+  const step = GLOW_STEP;
+  const inner = GLOW_INNER;
+  const rows = 7;
+  const cssW = Math.max(1, canvas.clientWidth || window.innerWidth);
+  const cssH = rows * 2 * step;
+  canvas.width = cssW;
+  canvas.height = cssH;
+  canvas.style.height = `${cssH}px`;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, cssW, cssH);
+  ctx.fillStyle = "#000";
+  const cols = Math.ceil(cssW / step);
+  const pad = (step - inner) / 2;
+  const stamp = (col: number, row: number) => {
+    ctx.fillRect(col * step + pad, row * step + pad, inner, inner);
+  };
+  for (let col = 0; col < cols; col += 1) {
+    const neighbor = Math.floor(edgeHash(col + 3, 2) * 3);
+    const extra = 2 + Math.floor(edgeHash(col, 3) * 5) + neighbor;
+    const first = Math.max(0, rows - extra);
+    for (let row = first; row < rows; row += 1) {
+      const tip = row - first;
+      if (tip === 0 && edgeHash(col, row + 17) > 0.45) continue;
+      if (tip === 1 && edgeHash(col, row + 23) > 0.7) continue;
+      stamp(col, row);
+      stamp(col, rows * 2 - 1 - row);
+    }
+  }
+}
+
+const LINES = ["The internet is too interesting", "to be this boring."];
+const PHONE_LINES = ["The internet is", "too interesting", "to be this boring."];
+const SUB = "Human-made brands & apps. Weird on purpose, built to work.";
+
+function HeroLine({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <span className="hero-line-row">
-      {Array.from(text).map((char, index) =>
+    <span className={`hero-line-row ${className}`}>
+      {Array.from(text).map((char, i) =>
         char === " " ? (
-          <span key={index} className="hero-space" />
+          <span className="hero-space" key={`g-${i}`} />
         ) : (
-          <span key={index} className="hero-letter">
+          <span className="hero-letter" key={`${char}-${i}`}>
             {char}
           </span>
         ),
@@ -36,233 +66,125 @@ function HeroLine({ text }: { text: string }) {
   );
 }
 
-function HeroCopy() {
-  return (
-    <div className="hero-mark">
-      <p className="hero-line">
-        {LINES.map((line) => (
-          <HeroLine key={line} text={line} />
-        ))}
-      </p>
-      <p className="hero-sub">Design to deployment.</p>
-    </div>
-  );
-}
-
+/** One statement, one sub line. Letters rise as the intro scrolls away — no scroll lock. */
 export function Hero() {
   const root = useRef<HTMLElement>(null);
+  const bottomEdge = useRef<HTMLCanvasElement>(null);
+  const [sky, setSky] = useState<Element | null>(null);
+
+  useLayoutEffect(() => {
+    setSky(document.querySelector(".page-field-sky"));
+  }, []);
+
+  useLayoutEffect(() => {
+    const bottom = bottomEdge.current;
+    if (!bottom || !sky) return;
+    const paint = () => paintHeroEdge(bottom);
+    paint();
+    window.addEventListener("resize", paint);
+    return () => window.removeEventListener("resize", paint);
+  }, [sky]);
 
   useLayoutEffect(() => {
     const hero = root.current;
     if (!hero) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-
-    const rest: Record<string, number> = {
-      "piece-about": -6,
-      "piece-contact": 2,
-      "piece-work": 0,
-      "piece-services": -20,
-    };
-    const dirs: Record<string, { x: number; y: number }> = {
-      "piece-about": { x: -1, y: -0.75 },
-      "piece-contact": { x: 1, y: -0.75 },
-      "piece-work": { x: -1, y: 1 },
-      "piece-services": { x: 1, y: 1 },
-    };
-
+    const coarse = isCoarsePointer();
     const ctx = gsap.context(() => {
-      const pieces = gsap.utils.toArray<HTMLElement>(".piece");
-      const intro = gsap.timeline({
-        defaults: { ease: "none" },
+      const pack = gsap.utils.toArray<HTMLElement>(".hero-letter", hero);
+      const sub = hero.querySelector(".hero-sub");
+      const cue = hero.querySelector(".hero-cue");
+      const sparks = gsap.utils.toArray<HTMLElement>(".spark", hero);
+      const passed = hero.getBoundingClientRect().top <= 2;
+
+      if (reduce || passed) {
+        gsap.set(pack, { yPercent: 0, color: PINK });
+        gsap.set([sub, cue, ...sparks], { autoAlpha: 1, y: 0, scale: 1 });
+        return;
+      }
+
+      gsap.set(pack, { yPercent: 118, color: PINK });
+      gsap.set(sparks, { autoAlpha: 0, scale: 0.4 });
+      gsap.set([sub, cue], { autoAlpha: 0, y: 14 });
+      const cover = gsap.timeline({
         scrollTrigger: {
           trigger: hero,
           start: "top bottom",
-          end: "top top",
-          scrub: 0.45,
+          end: "top 12%",
+          scrub: 0.4,
         },
       });
+      cover.to(sparks, { autoAlpha: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: "none" }, 0.12);
+      riseLetters(pack, 0.16, cover, coarse);
+      cover.to(sub, { autoAlpha: 1, y: 0, duration: 0.3, ease: "none" }, ">-0.1");
+      cover.to(cue, { autoAlpha: 1, y: 0, duration: 0.2, ease: "none" }, ">");
 
-      intro.fromTo(
-        ".deco, .label, .arrow, .spark",
-        { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.55, stagger: 0.03 },
-        0,
-      );
-      intro.fromTo(".hero-sub", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22 }, 0.48);
-
-      const letters = gsap.utils.toArray<HTMLElement>(".hero-letter");
-      gsap.set(letters, { yPercent: 118, color: "#000" });
-      letters.forEach((letter, index) => {
-        const at = index * 0.028;
-        const shift = index % GLITCH.length;
-        const seq = ["#000", ...GLITCH.slice(shift), ...GLITCH.slice(0, shift)].slice(0, 5);
-        seq.push("#FE63A0");
-        const state = { p: 0 };
-        intro.fromTo(
-          letter,
-          { yPercent: 118 },
-          { yPercent: 0, duration: 0.34, ease: "none" },
-          at,
-        );
-        intro.to(
-          state,
-          {
-            p: 1,
-            duration: 0.32,
-            ease: "none",
-            onUpdate() {
-              const step = Math.min(seq.length - 1, Math.floor(state.p * seq.length));
-              letter.style.color = seq[step] ?? "#FE63A0";
-            },
-          },
-          at,
-        );
-      });
-      pieces.forEach((piece, index) => {
-        const key =
-          [...piece.classList].find((name) => rest[name] !== undefined) ?? "";
-        const rot = rest[key] ?? 0;
-        const dir = dirs[key] ?? { x: 0, y: 1 };
-        const at = 0.12 + index * 0.08;
-
-        intro.fromTo(
-          piece,
-          { autoAlpha: 0, scale: 0.82, rotation: rot },
-          { autoAlpha: 1, scale: 1, rotation: rot, duration: 0.4 },
-          at,
-        );
-
-        const box = piece.getBoundingClientRect();
-        const host = hero.getBoundingClientRect();
-        const ox = box.left - host.left + box.width / 2;
-        const oy = box.top - host.top + box.height / 2;
-
-        for (let i = 0; i < 6; i += 1) {
-          const bit = document.createElement("span");
-          bit.className = i % 2 === 0 ? "spill is-pixel" : "spill is-star";
-          bit.style.left = `${ox}px`;
-          bit.style.top = `${oy}px`;
-          hero.appendChild(bit);
-
-          const spread = 0.55 + (i % 3) * 0.28;
-          const dx = dir.x * (70 + i * 16) * spread + (i - 2.5) * 14;
-          const dy = dir.y * (60 + i * 14) * spread + ((i % 2) - 0.5) * 18;
-
-          intro.fromTo(
-            bit,
-            { x: 0, y: 0, scale: 0.3, opacity: 0 },
-            { x: dx * 0.35, y: dy * 0.35, scale: 0.9, opacity: 1, duration: 0.18 },
-            at,
-          );
-          intro.to(
-            bit,
-            {
-              x: dx,
-              y: dy,
-              rotation: (i % 2 === 0 ? 1 : -1) * (40 + i * 18),
-              scale: 1.15,
-              opacity: 0,
-              duration: 0.32,
-            },
-            at + 0.16,
-          );
-        }
+      // On the way out the statement drifts up and thins out, so the collage reads as the next beat.
+      gsap.to(hero.querySelector(".hero-mark"), {
+        yPercent: -38,
+        autoAlpha: 0.15,
+        ease: "none",
+        scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true },
       });
     }, hero);
+    return () => ctx.revert();
+  }, []);
 
-    return () => {
-      hero.querySelectorAll(".spill").forEach((bit) => bit.remove());
-      ctx.revert();
-    };
+  useLayoutEffect(() => {
+    const hero = root.current;
+    const field = hero?.querySelector(".hero-text-sparkles");
+    if (!hero || !(field instanceof HTMLElement)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    return attachTextSparkles({
+      field,
+      anchor: () => hero.querySelector(".hero-mark"),
+      live: () => {
+        const box = hero.getBoundingClientRect();
+        return box.top < window.innerHeight * 0.5 && box.bottom > window.innerHeight * 0.5;
+      },
+    });
   }, []);
 
   return (
-    <header className="hero" id="top" ref={root}>
-      <LiquidBackground className="hero-liquid" />
-      <div className="hero-wash" aria-hidden="true" />
-      <div className="hero-bloom" aria-hidden="true">
-        <canvas />
-      </div>
-      <div className="fx-slot" aria-hidden="true" />
-      <svg className="arrow-tip" width="0" height="0" aria-hidden="true">
-        <defs>
-          <marker
-            id="tip"
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="5"
-            markerHeight="5"
-            orient="auto-start-reverse"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M1 1.5 L8.5 5 L1 8.5" />
-          </marker>
-        </defs>
-      </svg>
-
-      <img className="spark spark-a" src={star} alt="" />
-      <img className="spark spark-e" src={star} alt="" />
-      <img className="spark spark-b" src={star} alt="" />
-      <img className="spark spark-c" src={star} alt="" />
-      <img className="spark spark-d" src={star} alt="" />
-
-      <a className="piece piece-about" href="#about" data-in>
-        <img src={about} alt="Mable Studio. About us." />
-      </a>
-      <p className="label label-who" data-in>
-        WHO ARE
-        <br />
-        WE?
-      </p>
-      <svg className="arrow arrow-who" viewBox="0 0 120 52" aria-hidden="true">
-        <path d="M112 8C72 6 40 20 14 44" markerEnd="url(#tip)" />
-      </svg>
-
-      <img className="deco deco-rabbit" src={rabbit} alt="" data-in />
-      <img className="deco deco-note" src={stickyYellow} alt="" data-in />
-
-      <p className="label label-find" data-in>
-        FIND US HERE!
-      </p>
-      <svg className="arrow arrow-find" viewBox="0 0 120 48" aria-hidden="true">
-        <path d="M6 12C42 4 78 8 108 36" markerEnd="url(#tip)" />
-      </svg>
-      <img className="deco deco-pink" src={stickyPink} alt="" data-in />
-      <a className="piece piece-contact" href="/contact" data-in>
-        <img src={contact} alt="Contact the studio." />
-      </a>
-
-      <p className="label label-made" data-in>
-        WANNA SEE WHAT
-        <br />
-        WE’VE MADE?
-      </p>
-      <svg className="arrow arrow-made" viewBox="0 0 120 56" aria-hidden="true">
-        <path d="M4 8C42 10 74 22 110 48" markerEnd="url(#tip)" />
-      </svg>
-      <a className="piece piece-work" href="#work" data-in>
-        <img src={portfolio} alt="Portfolio." />
-      </a>
-
-      <img className="deco deco-lemon" src={lemon} alt="" data-in />
-      <img className="deco deco-pink-button" src={buttonPink} alt="" />
-      <img className="deco deco-blue-button" src={buttonBlue} alt="" />
-
-      <a className="piece piece-services" href="#services" data-in>
-        <img src={services} alt="Services, menu and pricing." />
-      </a>
-      <p className="label label-menu" data-in>
-        THE MENU +
-        <br />
-        THE MONEY
-      </p>
-      <svg className="arrow arrow-menu" viewBox="0 0 120 52" aria-hidden="true">
-        <path d="M108 8C70 6 38 22 12 44" markerEnd="url(#tip)" />
-      </svg>
-
-      <HeroCopy />
-    </header>
+    <div className="hero-track">
+      {sky &&
+        createPortal(
+          <canvas className="hero-pixel-edge is-bottom" ref={bottomEdge} aria-hidden="true" />,
+          sky,
+        )}
+      <header className="hero" id="top" ref={root}>
+        <div className="hero-wash" aria-hidden="true" />
+        <div className="hero-bloom" aria-hidden="true" />
+        <div className="fx-slot" aria-hidden="true">
+          <span className="spark spark-a">
+            <img src={star} alt="" />
+          </span>
+          <span className="spark spark-b">
+            <img src={star} alt="" />
+          </span>
+          <span className="spark spark-c">
+            <img src={star} alt="" />
+          </span>
+        </div>
+        <div className="hero-text-sparkles" aria-hidden="true" />
+        <div className="hero-mark">
+          <h1 className="hero-beat">
+            <span className="hero-line">
+              {LINES.map((line) => (
+                <HeroLine key={line} text={line} className="is-desk" />
+              ))}
+              {PHONE_LINES.map((line) => (
+                <HeroLine key={`p-${line}`} text={line} className="is-phone" />
+              ))}
+            </span>
+            <span className="hero-sub">{SUB}</span>
+          </h1>
+        </div>
+        <a className="hero-cue" href="#made-by-humans" aria-label="Keep scrolling">
+          <span>keep scrolling</span>
+          <i aria-hidden="true" />
+        </a>
+      </header>
+    </div>
   );
 }

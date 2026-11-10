@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { PALETTE } from "../grid/colors";
+import { GLOW_INNER, GLOW_STEP } from "../grid/constants";
 import { isCoarsePointer, pixelRatio } from "../perf";
 
 const HOT = "#FE63A0";
@@ -41,8 +42,8 @@ function paintSquares(canvas: HTMLCanvasElement, amount: number, climb: number, 
   ctx.clearRect(0, 0, w, h);
   if (amount <= 0.02 || h < 2) return;
 
-  const step = 12;
-  const inner = 8;
+  const step = GLOW_STEP;
+  const inner = GLOW_INNER;
   const cols = Math.ceil(w / step);
   const rows = Math.ceil(h / step);
   const reach = Math.max(0.12, climb);
@@ -108,6 +109,10 @@ export function ScrollGlow() {
       strength.current = amount;
       climb.current = 0.38 + 0.62 * Math.min(1, t / 0.5);
       glowEl.style.opacity = String(amount);
+      if (coarse) {
+        const cut = Math.max(0, Math.min(92, (1 - climb.current) * 100));
+        glowEl.style.clipPath = `inset(${cut}% 0 0 0)`;
+      }
       if (bloom) bloom.style.opacity = String(amount);
       if (wash) wash.style.opacity = String(t);
       if (!coarse) draw();

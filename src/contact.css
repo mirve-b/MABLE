@@ -1,0 +1,351 @@
+.contact {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 48px;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #000000 0%, #000000 22%, #782344 100%);
+  color: #f7f1f3;
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+}
+
+.contact-star {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 0 0 #d7bdc7) drop-shadow(0 0 0 #d7bdc7) drop-shadow(0 0 0.5px #d7bdc7);
+}
+
+.contact-star-a {
+  left: 2%;
+  bottom: 16%;
+  width: min(92px, 8vw);
+}
+
+.contact-star-b {
+  right: -1.5%;
+  top: 18%;
+  width: min(140px, 12vw);
+}
+
+.contact-head {
+  position: relative;
+  z-index: 2;
+  padding-top: 92px;
+}
+
+.contact-mark-wrap {
+  margin: 0;
+  line-height: 0;
+}
+
+.contact-mark {
+  display: block;
+  width: 96%;
+  height: auto;
+  margin: 0 auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.contact-ask {
+  margin: 10px 3.2vw 0;
+  font-weight: 300;
+  font-size: clamp(13px, 1.35vw, 18px);
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: left;
+  color: #f4ecef;
+}
+
+.contact-inner {
+  position: relative;
+  z-index: 2;
+  width: min(640px, calc(100% - 48px));
+  margin: 36px auto 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.contact-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 32px;
+}
+
+.contact-step {
+  appearance: none;
+  border: 0;
+  padding: 10px 8px 0;
+  background: transparent;
+  color: #8d8d8d;
+  font-family: inherit;
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+}
+
+.contact-step-n {
+  display: block;
+  margin-bottom: 6px;
+  color: inherit;
+  font-family: Barrio, cursive;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.contact-step-bar {
+  position: relative;
+  display: block;
+  height: 2px;
+  margin-top: 12px;
+}
+
+.contact-step-gray,
+.contact-step-pink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.contact-step-gray {
+  background: #5c5c5c;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-step-pink {
+  background: #fe63a0;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-step.is-track .contact-step-gray {
+  transform: scaleX(1);
+}
+
+.contact-step.is-fill .contact-step-pink {
+  transform: scaleX(1);
+}
+
+.contact-step.is-on,
+.contact-step.is-done {
+  color: #fe63a0;
+}
+
+.contact-step:disabled {
+  cursor: default;
+}
+
+.contact-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.contact-field {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.contact-field span {
+  color: #d7bdc7;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.contact-field input,
+.contact-field textarea {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #fe63a0;
+  border-radius: 0;
+  padding: 12px 0 10px;
+  background: transparent;
+  color: #f7f1f3;
+  font-family: inherit;
+  font-weight: 300;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  outline: none;
+}
+
+.contact-field textarea {
+  min-height: 180px;
+  resize: vertical;
+  line-height: 1.45;
+  border: 1px solid #fe63a0;
+  padding: 14px 16px;
+}
+
+.contact-field input:focus,
+.contact-field textarea:focus {
+  border-color: #ffc1dc;
+}
+
+.contact-error {
+  margin: 0;
+  color: #fe63a0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.contact-checks {
+  display: grid;
+  gap: 12px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.contact-check {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #f7f1f3;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.contact-check input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 0;
+  background: #d7bdc7;
+  -webkit-mask-image: url("./assets/pixel.svg");
+  mask-image: url("./assets/pixel.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  cursor: pointer;
+}
+
+.contact-check input:checked {
+  background: #fe63a0;
+}
+
+.contact-check:hover {
+  color: #ffc1dc;
+}
+
+.contact-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.contact-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 26px 13px;
+  font-family: inherit;
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.contact-btn.is-next,
+.contact-btn.is-send {
+  margin-left: auto;
+  background: #8ea3b4;
+  color: #f4f4f4;
+}
+
+.contact-btn.is-next:hover,
+.contact-btn.is-send:hover {
+  background: #a3b6c4;
+}
+
+.contact-btn.is-back {
+  background: transparent;
+  color: #fe63a0;
+  padding-left: 0;
+}
+
+.contact-done {
+  display: grid;
+  gap: 12px;
+  padding-top: 24px;
+}
+
+.contact-done h2 {
+  margin: 0;
+  font-weight: 200;
+  font-size: clamp(32px, 6vw, 48px);
+  text-transform: uppercase;
+}
+
+.contact-done p {
+  margin: 0;
+  color: #d7bdc7;
+  letter-spacing: 0.08em;
+}
+
+.contact-done a {
+  color: #fe63a0;
+  text-decoration: none;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .contact {
+    padding: 0 0 40px;
+  }
+
+  .contact-head {
+    padding-top: 84px;
+  }
+
+  .contact-ask {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .contact-star-a {
+    width: 52px;
+    bottom: 10%;
+  }
+
+  .contact-star-b {
+    width: 64px;
+    top: 22%;
+  }
+
+  .contact-steps {
+    gap: 0;
+  }
+
+  .contact-step {
+    padding: 8px 4px 0;
+    font-size: 10px;
+  }
+}

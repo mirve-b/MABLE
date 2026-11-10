@@ -1,7 +1,85 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
+import menuMark from "../assets/deco/menu.svg";
+import rabbitMark from "../assets/deco/rabbit.svg";
 import { PALETTE } from "../grid/colors";
 import "../hero.css";
+
+const LINKS = [
+  { href: "/#about", label: "About" },
+  { href: "/#work", label: "Work" },
+  { href: "/#services", label: "Services" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/contact", label: "Contact", kind: "contact" },
+] as const;
+
+const CONTACT_PIXELS = Array.from({ length: 26 }, (_, index) => {
+  const around = index / 26;
+  const angle = Math.PI * 0.12 + around * Math.PI * 1.76;
+  const dist = 22 + (index % 5) * 8;
+  return {
+    dx: Math.round(Math.cos(angle) * dist * 1.15),
+    dy: Math.round(Math.sin(angle) * dist * 0.78 + 10),
+    delay: ((index * 0.073) % 0.92).toFixed(2),
+    dur: (0.72 + (index % 4) * 0.14).toFixed(2),
+    size: 4 + (index % 3) * 2,
+    color: PALETTE[index % PALETTE.length] ?? "#FE63A0",
+  };
+});
+
+function NavLink({
+  href,
+  label,
+  kind,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  kind?: "contact";
+  onClick?: () => void;
+}) {
+  const contact = kind === "contact";
+  return (
+    <a
+      className={`nav-link${contact ? " nav-contact" : ""}`}
+      href={href}
+      onClick={onClick}
+      onPointerEnter={
+        contact
+          ? (event) => event.currentTarget.classList.add("is-glow")
+          : undefined
+      }
+      onPointerLeave={
+        contact
+          ? (event) => event.currentTarget.classList.remove("is-glow")
+          : undefined
+      }
+    >
+      {label}
+      {contact && (
+        <span className="nav-contact-glow" aria-hidden="true">
+          {CONTACT_PIXELS.map((bit, index) => (
+            <span
+              key={index}
+              className="nav-contact-pixel"
+              style={
+                {
+                  "--dx": `${bit.dx}px`,
+                  "--dy": `${bit.dy}px`,
+                  "--delay": `${bit.delay}s`,
+                  "--dur": `${bit.dur}s`,
+                  width: bit.size,
+                  height: Math.round(bit.size * 0.9),
+                  backgroundColor: bit.color,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </span>
+      )}
+    </a>
+  );
+}
 
 function pick<T>(items: readonly T[]) {
   return items[Math.floor(Math.random() * items.length)]!;
@@ -38,6 +116,7 @@ function flicker(bar: HTMLElement) {
 
 export function Nav() {
   const links = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
   useLayoutEffect(() => {
     const row = links.current;
@@ -45,7 +124,7 @@ export function Nav() {
     if (!row || !bar) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const items = Array.from(row.querySelectorAll<HTMLAnchorElement>("a"));
+    const items = Array.from(row.querySelectorAll<HTMLAnchorElement>("a.nav-link:not(.nav-contact)"));
     let shown = false;
     let pulse = 0;
 
@@ -95,6 +174,7 @@ export function Nav() {
     const onResize = () => {
       const active = items.find((link) => link.matches(":hover"));
       if (active && shown) place(active, true);
+      if (window.matchMedia("(min-width: 761px)").matches) setOpen(false);
     };
     window.addEventListener("resize", onResize);
 
@@ -106,23 +186,60 @@ export function Nav() {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.documentElement.classList.add("nav-locked");
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.documentElement.classList.remove("nav-locked");
+    };
+  }, [open]);
+
   return (
-    <nav className="nav">
-      <a className="nav-brand" href="#top" aria-label="Mable">
+    <nav className={`nav${open ? " is-open" : ""}`}>
+      <a className="nav-brand" href="/" aria-label="Mable">
         <span className="nav-wordmark" aria-hidden="true" />
         <span className="nav-studio">Design X Code Studio</span>
       </a>
+      <a className="nav-bunny" href="/" aria-label="Mable">
+        <img src={rabbitMark} alt="" />
+      </a>
       <div className="nav-links" ref={links}>
-        <a href="#about">About</a>
-        <a href="#work">Work</a>
-        <a href="#services">Services</a>
-        <a href="/contact">Contact</a>
-        <a href="#faq">FAQ</a>
+        {LINKS.map((link) => (
+          <NavLink
+            key={link.href}
+            href={link.href}
+            label={link.label}
+            kind={"kind" in link ? link.kind : undefined}
+          />
+        ))}
         <div className="nav-glitch" aria-hidden="true" />
       </div>
-      <a className="make" href="/contact">
-        Let’s make it!!
-      </a>
+      <button
+        className="nav-toggle"
+        type="button"
+        aria-label={open ? "Close menu" : "Open menu"}
+        aria-expanded={open}
+        aria-controls="nav-panel"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <img src={menuMark} alt="" />
+      </button>
+      <div className="nav-panel" id="nav-panel" aria-hidden={!open}>
+        {LINKS.map((link) => (
+          <NavLink
+            key={link.href}
+            href={link.href}
+            label={link.label}
+            kind={"kind" in link ? link.kind : undefined}
+            onClick={() => setOpen(false)}
+          />
+        ))}
+      </div>
     </nav>
   );
 }
