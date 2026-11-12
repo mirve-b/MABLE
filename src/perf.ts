@@ -47,22 +47,27 @@ function goLite() {
 
 export function watchPerformance() {
   const nav = navigator as Navigator & { deviceMemory?: number };
-  const weak = (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4;
+  // only genuinely tiny machines start in lite; everyone else gets the watchdog below
+  const weak = (nav.hardwareConcurrency ?? 8) <= 2 || (nav.deviceMemory ?? 8) <= 2;
   if (weak) goLite();
 
-  // Frame watchdog: if the page averages under ~40fps for 2s (while visible), switch to lite.
+  // Frame watchdog: ignore the first 3s (loading is always janky), then switch to lite only if
+  // two 2-second windows in a row are mostly slow frames (under ~40fps) while the tab is visible.
+  const startAt = performance.now() + 3000;
   let last = performance.now();
   let slow = 0;
   let total = 0;
+  let badWindows = 0;
   let raf = 0;
   const tick = (now: number) => {
     const dt = now - last;
     last = now;
-    if (!document.hidden && dt < 500) {
+    if (now > startAt && !document.hidden && dt < 500) {
       total += dt;
       if (dt > 25) slow += dt;
       if (total > 2000) {
-        if (slow / total > 0.5) goLite();
+        badWindows = slow / total > 0.5 ? badWindows + 1 : 0;
+        if (badWindows >= 2) goLite();
         total = 0;
         slow = 0;
       }

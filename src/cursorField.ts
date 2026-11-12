@@ -11,9 +11,12 @@ export const pointer = {
   movedAt: 0,
 };
 
-/** Lit logo cells currently near the cursor (written every frame by usePixelHeat). */
+/** A lit logo cell near the cursor: its centre on screen, its size, and a way to make it burst. */
+export type HotCell = { x: number; y: number; unit: number; burst: (holdMs: number) => boolean };
+
+/** Lit logo cells currently near the cursor (written every frame by the canvas PixelGrid). */
 export const hotZone = {
-  cells: [] as HTMLElement[],
+  cells: [] as HotCell[],
 };
 
 let listeners = 0;

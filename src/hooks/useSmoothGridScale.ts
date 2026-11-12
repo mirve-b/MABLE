@@ -27,20 +27,11 @@ export function useSmoothGridScale(
     let current = dest;
 
     const apply = (scale: number) => {
-      const grid = frame.querySelector(".pixel-grid");
-      if (!(grid instanceof HTMLElement)) return;
-
+      // the canvas grid fills the frame and redraws crisply at the new size (no transform scaling)
       gsap.set(cluster, { width: GRID_WIDTH * scale });
       gsap.set(frame, {
         width: GRID_WIDTH * scale,
         height: GRID_HEIGHT * scale,
-      });
-      gsap.set(grid, {
-        xPercent: -50,
-        yPercent: -50,
-        scale,
-        transformOrigin: "center center",
-        force3D: true,
       });
     };
 

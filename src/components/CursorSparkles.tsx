@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { hasFinePointer, hotZone, pointer, prefersReducedMotion, watchPointer } from "../cursorField";
+import { hasFinePointer, hotZone, pointer, prefersReducedMotion, watchPointer, type HotCell } from "../cursorField";
 import { hoverFxAllowed } from "../perf";
 
 /** Same sparkle colours as the website's text sparkles. */
@@ -16,9 +16,8 @@ function pick<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]!;
 }
 
-function centerOf(cell: HTMLElement) {
-  const r = cell.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2, unit: r.width };
+function centerOf(cell: HotCell) {
+  return { x: cell.x, y: cell.y, unit: cell.unit };
 }
 
 /**
@@ -137,17 +136,9 @@ export function CursorSparkles() {
     const burst = (heat: number) => {
       if (live >= MAX_LIVE || hotZone.cells.length === 0) return;
       const cell = pick(hotZone.cells);
-      if (cell.classList.contains("is-burst")) return;
+      if (!cell.burst(rand(160, 300))) return; // the canvas blinks it out and springs it back
       const { x, y, unit } = centerOf(cell);
       const away = Math.atan2(y - pointer.y, x - pointer.x);
-
-      cell.classList.remove("is-rebuild");
-      cell.classList.add("is-burst");
-      later(() => {
-        cell.classList.add("is-rebuild");
-        cell.classList.remove("is-burst");
-        later(() => cell.classList.remove("is-rebuild"), 320);
-      }, rand(160, 300));
 
       const count = 3 + Math.floor(Math.random() * (2 + heat * 2));
       for (let i = 0; i < count; i += 1) {
@@ -187,9 +178,6 @@ export function CursorSparkles() {
     return () => {
       cancelAnimationFrame(raf);
       timers.forEach((id) => window.clearTimeout(id));
-      document.querySelectorAll(".pixel-cross.is-burst, .pixel-cross.is-rebuild").forEach((el) => {
-        el.classList.remove("is-burst", "is-rebuild");
-      });
       stop();
       host.replaceChildren();
     };
