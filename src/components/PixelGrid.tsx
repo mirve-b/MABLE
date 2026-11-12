@@ -244,7 +244,13 @@ export function PixelGrid({ mask, phase, onEntered, onLeft }: PixelGridProps) {
       sprites.resize(Math.round(CROSS_WIDTH * scale * dpr), Math.round(CROSS_HEIGHT * scale * dpr));
     };
     fit();
-    const ro = new ResizeObserver(fit);
+    // Resizing a canvas wipes it. The observer fires after this frame's drawing, so resizing there
+    // left a blank canvas on screen for every frame of a window resize. Just flag it and resize
+    // right before the next draw instead.
+    let needsFit = false;
+    const ro = new ResizeObserver(() => {
+      needsFit = true;
+    });
     ro.observe(canvas);
 
     // idle glitches: 2–3 cells at a time flicker a palette colour (same rhythm as before)
@@ -279,6 +285,10 @@ export function PixelGrid({ mask, phase, onEntered, onLeft }: PixelGridProps) {
     const draw = (now: number) => {
       raf = requestAnimationFrame(draw);
       if (!visible) return;
+      if (needsFit) {
+        needsFit = false;
+        fit();
+      }
       const dt = Math.min(64, now - last);
       last = now;
       const ph = phaseRef.current;
