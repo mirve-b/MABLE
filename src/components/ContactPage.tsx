@@ -1,36 +1,20 @@
-import { useEffect, useLayoutEffect, useState, type FormEvent } from "react";
-import contactMark from "../assets/deco/contact-mark.webp";
-import star from "../assets/deco/star.webp";
+import { useLayoutEffect, useState, type FormEvent } from "react";
 import { CursorFx } from "./CursorFx";
-import { LogoBurst } from "./LogoBurst";
 import { Nav } from "./Nav";
 import { useCursorFx } from "../hooks/useCursorFx";
 import { isCoarsePointer } from "../perf";
 import "../contact.css";
 
-const SERVICES = [
-  "Design",
-  "Branding",
-  "UI / UX",
-  "Art direction",
-  "Development",
-  "Illustration",
-] as const;
-
-const STEPS = [
-  { n: "01", label: "You" },
-  { n: "02", label: "Want" },
-  { n: "03", label: "Tell" },
-] as const;
+const NEEDS = ["Design", "Development", "Content", "Not sure yet"] as const;
 
 type Draft = {
   name: string;
   email: string;
-  services: string[];
+  needs: string[];
   note: string;
 };
 
-const EMPTY: Draft = { name: "", email: "", services: [], note: "" };
+const EMPTY: Draft = { name: "", email: "", needs: [], note: "" };
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -39,13 +23,12 @@ function isEmail(value: string) {
 export function ContactPage() {
   const cursor = useCursorFx();
   const coarse = isCoarsePointer();
-  const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [draft, setDraft] = useState<Draft>(() => {
+    const need = new URLSearchParams(window.location.search).get("need");
+    return need && (NEEDS as readonly string[]).includes(need) ? { ...EMPTY, needs: [need] } : EMPTY;
+  });
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
-  const [tracks, setTracks] = useState(0);
-  const [filled, setFilled] = useState(0);
-  const [burst, setBurst] = useState(true);
 
   useLayoutEffect(() => {
     document.documentElement.classList.add("is-contact");
@@ -55,64 +38,22 @@ export function ContactPage() {
     };
   }, [coarse]);
 
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setTracks(3);
-      setFilled(1);
-      return;
-    }
-    const start = window.requestAnimationFrame(() => {
-      setTracks((current) => Math.max(current, 1));
-      setFilled((current) => Math.max(current, 1));
-    });
-    return () => window.cancelAnimationFrame(start);
-  }, []);
+  const set = (key: "name" | "email" | "note", value: string) =>
+    setDraft((current) => ({ ...current, [key]: value }));
 
-  useEffect(() => {
-    setFilled((current) => Math.max(current, step + 1));
-    setTracks((current) => Math.max(current, step + 1));
-  }, [step]);
-
-  useEffect(() => {
-    if (filled < 1 || tracks >= 3) return;
-    const wait = window.setTimeout(() => setTracks(3), 560);
-    return () => window.clearTimeout(wait);
-  }, [filled, tracks]);
-
-  const go = (next: number) => {
-    if (next > 0 && (!draft.name.trim() || !isEmail(draft.email))) {
-      setError("Name and a real email, please.");
-      setStep(0);
-      return;
-    }
-    if (next > 1 && draft.services.length === 0) {
-      setError("Pick at least one service.");
-      setStep(1);
-      return;
-    }
-    setError("");
-    setStep(next);
-  };
-
-  const toggleService = (name: string) => {
-    setDraft((current) => {
-      const on = current.services.includes(name);
-      return {
-        ...current,
-        services: on
-          ? current.services.filter((item) => item !== name)
-          : [...current.services, name],
-      };
-    });
-  };
+  const toggle = (need: string) =>
+    setDraft((current) => ({
+      ...current,
+      needs: current.needs.includes(need)
+        ? current.needs.filter((item) => item !== need)
+        : [...current.needs, need],
+    }));
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!draft.note.trim()) {
-      setError("Tell us a little about the project.");
-      return;
-    }
+    if (!draft.name.trim()) return setError("What should we call you?");
+    if (!isEmail(draft.email)) return setError("We need a real email to write back.");
+    if (!draft.note.trim()) return setError("Tell us a little about the idea.");
     setError("");
     setSent(true);
   };
@@ -120,131 +61,100 @@ export function ContactPage() {
   return (
     <>
       <Nav />
-      {burst && <LogoBurst onDone={() => setBurst(false)} />}
-      <main className="contact">
-        <img className="contact-star contact-star-a" src={star} alt="" />
-        <img className="contact-star contact-star-b" src={star} alt="" />
-        <header className="contact-head">
-          <h1 className="contact-mark-wrap">
-            <img className="contact-mark" src={contactMark} alt="Contact" />
+      <main className="ct">
+        <section className="ct-intro">
+          <p className="ct-kicker">
+            <span className="ct-pixel" aria-hidden="true" />
+            Contact
+          </p>
+          <h1 className="ct-title">
+            So... what’s
+            <br />
+            the big idea?
           </h1>
-          <p className="contact-ask">So... what's the big idea?</p>
-        </header>
-        <div className="contact-inner">
+          <p className="ct-lede">
+            A brand, a website, an app, or a strange little idea you’ve been sitting on. Tell us a bit and we’ll
+            take it from there.
+          </p>
+        </section>
+
+        <section className="ct-panel" aria-live="polite">
           {sent ? (
-            <div className="contact-done">
-              <h2>Got it.</h2>
-              <p>
-                Thanks {draft.name.trim()}. We’ll write to {draft.email.trim()}{" "}
-                about {draft.services.join(", ").toLowerCase()}.
-              </p>
-              <a href="/">Back to Mable</a>
+            <div className="ct-done">
+              <span className="ct-pixel is-big" aria-hidden="true" />
+              <h2>Got it, {draft.name.trim().split(" ")[0]}.</h2>
+              <p>We’ll write back to {draft.email.trim()} soon.</p>
+              <a className="ct-back" href="/">
+                Back to Mable
+              </a>
             </div>
           ) : (
-            <form onSubmit={submit} noValidate>
-              <div className="contact-steps" role="tablist" aria-label="Form steps">
-                {STEPS.map((item, index) => (
-                  <button
-                    key={item.n}
-                    className={`contact-step${step === index ? " is-on" : ""}${index < step ? " is-done" : ""}${index < tracks ? " is-track" : ""}${index < filled ? " is-fill" : ""}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={step === index}
-                    disabled={index > step}
-                    onClick={() => go(index)}
-                  >
-                    <span className="contact-step-n">{item.n}</span>
-                    {item.label}
-                    <span className="contact-step-bar" aria-hidden="true">
-                      <i className="contact-step-gray" />
-                      <i className="contact-step-pink" />
-                    </span>
-                  </button>
-                ))}
+            <form className="ct-form" onSubmit={submit} noValidate>
+              <div className="ct-row">
+                <label className="ct-field">
+                  <span>Name</span>
+                  <input
+                    name="name"
+                    autoComplete="name"
+                    value={draft.name}
+                    onChange={(event) => set("name", event.target.value)}
+                  />
+                </label>
+                <label className="ct-field">
+                  <span>Email</span>
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={draft.email}
+                    onChange={(event) => set("email", event.target.value)}
+                  />
+                </label>
               </div>
 
-              {step === 0 && (
-                <div className="contact-panel" role="tabpanel">
-                  <label className="contact-field">
-                    <span>Name</span>
-                    <input
-                      name="name"
-                      autoComplete="name"
-                      value={draft.name}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, name: event.target.value }))
-                      }
-                    />
-                  </label>
-                  <label className="contact-field">
-                    <span>Email</span>
-                    <input
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      value={draft.email}
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, email: event.target.value }))
-                      }
-                    />
-                  </label>
+              <fieldset className="ct-needs">
+                <legend>What do you need?</legend>
+                <div className="ct-chips">
+                  {NEEDS.map((need) => {
+                    const on = draft.needs.includes(need);
+                    return (
+                      <button
+                        key={need}
+                        type="button"
+                        className={on ? "ct-chip is-on" : "ct-chip"}
+                        aria-pressed={on}
+                        onClick={() => toggle(need)}
+                      >
+                        {need}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </fieldset>
 
-              {step === 1 && (
-                <div className="contact-panel" role="tabpanel">
-                  <div className="contact-checks">
-                    {SERVICES.map((name) => (
-                      <label className="contact-check" key={name}>
-                        <input
-                          type="checkbox"
-                          checked={draft.services.includes(name)}
-                          onChange={() => toggleService(name)}
-                        />
-                        {name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <label className="ct-field">
+                <span>Tell us about it</span>
+                <textarea
+                  name="note"
+                  rows={4}
+                  value={draft.note}
+                  placeholder="What are you making, when do you need it, anything we should know?"
+                  onChange={(event) => set("note", event.target.value)}
+                />
+              </label>
 
-              {step === 2 && (
-                <div className="contact-panel" role="tabpanel">
-                  <label className="contact-field">
-                    <span>Project / questions</span>
-                    <textarea
-                      name="note"
-                      value={draft.note}
-                      placeholder="What are you trying to make? Timeline, references, weird constraints — dump it here."
-                      onChange={(event) =>
-                        setDraft((current) => ({ ...current, note: event.target.value }))
-                      }
-                    />
-                  </label>
-                </div>
-              )}
-
-              {error ? <p className="contact-error">{error}</p> : null}
-
-              <div className="contact-actions">
-                {step > 0 && (
-                  <button className="contact-btn is-back" type="button" onClick={() => go(step - 1)}>
-                    Back
-                  </button>
-                )}
-                {step < 2 ? (
-                  <button className="contact-btn is-next" type="button" onClick={() => go(step + 1)}>
-                    Next
-                  </button>
-                ) : (
-                  <button className="contact-btn is-send" type="submit">
-                    Send
-                  </button>
-                )}
+              <div className="ct-foot">
+                <p className="ct-error" role="alert">
+                  {error}
+                </p>
+                <button className="ct-send" type="submit">
+                  Send it
+                  <span aria-hidden="true">→</span>
+                </button>
               </div>
             </form>
           )}
-        </div>
+        </section>
       </main>
       {!coarse && (
         <CursorFx

@@ -1,0 +1,298 @@
+/* ---------- Footer: ink, pink-led, a little bit of Mable ---------- */
+
+.ft {
+  --pixel: var(--m-baby);
+  position: relative;
+  z-index: 1;
+  margin: clamp(96px, 14vh, 150px) 0 0;
+  padding: 0 var(--edge) 26px;
+  background: var(--m-ink);
+  color: var(--m-text);
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+}
+
+/* a pink hairline that fades out to both sides */
+.ft::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--m-hot) 30%, var(--m-baby) 70%, transparent);
+  opacity: 0.7;
+}
+
+/* ---------- top band: logo + the big ask ---------- */
+
+.ft-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(48px, 8vh, 80px) 0 clamp(40px, 6vh, 60px);
+  border-bottom: 1px solid var(--m-line);
+}
+
+.ft .footer-mark {
+  width: min(320px, 70vw);
+}
+
+.ft-tag {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--m-muted);
+}
+
+.ft-cta {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  color: var(--m-text);
+  text-decoration: none;
+  text-align: right;
+}
+
+.ft-cta-kicker {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--m-hot);
+}
+
+.ft-cta-big {
+  font-weight: 200;
+  font-size: clamp(30px, 4.2vw, 60px);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+}
+
+.ft-cta-big em {
+  font-style: normal;
+  color: var(--m-hot);
+}
+
+.ft-cta-big span {
+  display: inline-block;
+  color: var(--m-hot);
+  transition: translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ft-cta:hover .ft-cta-big span {
+  translate: 8px 0;
+}
+
+.ft-cta:focus-visible,
+.ft a:focus-visible {
+  outline: 2px solid var(--m-baby);
+  outline-offset: 4px;
+}
+
+/* ---------- columns ---------- */
+
+.ft-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 40px;
+  padding: clamp(36px, 6vh, 56px) 0;
+}
+
+.ft-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ft-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--m-muted);
+}
+
+.ft-col a {
+  position: relative;
+  color: var(--m-text);
+  font-size: 16px;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+/* a tiny pink pixel slides in before the hovered link */
+.ft-col a::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--m-hot);
+  opacity: 0;
+  translate: -6px -50%;
+  transition:
+    opacity 0.2s ease,
+    translate 0.25s ease;
+}
+
+.ft-col a:hover {
+  color: var(--m-baby);
+}
+
+.ft-col a:hover::before {
+  opacity: 1;
+  translate: 0 -50%;
+}
+
+.ft-col a.ft-feature {
+  color: var(--m-hot);
+}
+
+.ft-feature span {
+  display: inline-block;
+  transition: translate 0.25s ease;
+}
+
+.ft-feature:hover span {
+  translate: 3px -3px;
+}
+
+/* ---------- the palette chips ---------- */
+
+.ft-chips {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ft-chip {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  background: var(--c);
+  box-shadow: inset 0 0 0 1px rgb(243 236 238 / 0.18);
+  cursor: default;
+  transition: translate 0.25s ease;
+}
+
+.ft-chip:hover {
+  translate: 0 -4px;
+}
+
+.ft-chip-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  padding: 6px 10px;
+  border: 1px solid var(--m-line);
+  border-radius: 6px;
+  background: var(--m-ink-2);
+  color: var(--m-text);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  translate: -50% 4px;
+  transition:
+    opacity 0.2s ease,
+    translate 0.2s ease;
+}
+
+.ft-chip-tip b {
+  margin-left: 6px;
+  font-weight: 300;
+  color: var(--m-muted);
+}
+
+.ft-chip:hover .ft-chip-tip {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+.ft-fact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--m-muted);
+}
+
+.ft-stitch {
+  flex: none;
+  width: 14px;
+  aspect-ratio: 92 / 82;
+  background: var(--m-hot);
+  -webkit-mask: url("./assets/pixel.svg") center / contain no-repeat;
+  mask: url("./assets/pixel.svg") center / contain no-repeat;
+}
+
+/* ---------- legal line ---------- */
+
+.ft-legal {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 22px;
+  border-top: 1px solid var(--m-line);
+  font-size: 13px;
+  color: var(--m-muted);
+}
+
+.ft-legal a {
+  color: var(--m-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ft-legal a:hover {
+  color: var(--m-hot);
+}
+
+/* ---------- phones ---------- */
+
+@media (max-width: 760px) {
+  .ft {
+    padding: 0 20px 22px;
+  }
+
+  .ft-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 34px;
+  }
+
+  .ft-cta {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .ft-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 34px 24px;
+  }
+
+  .ft-palette {
+    grid-column: 1 / -1;
+  }
+
+  .ft-col a::before {
+    display: none;
+  }
+
+  .ft-legal {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .ft-chip-tip {
+    display: none;
+  }
+}

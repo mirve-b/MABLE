@@ -477,7 +477,13 @@ html.is-hero-lock {
 
 .glow-spark {
   background-color: #fe63a0;
-  box-shadow: 0 0 10px rgb(254 99 160 / 0.55);
+  box-shadow:
+    0 0 6px rgb(255 255 255 / 0.55),
+    0 0 14px 2px rgb(254 99 160 / 0.8);
+}
+
+.glow-pixel {
+  filter: drop-shadow(0 0 6px rgb(254 99 160 / 0.85));
 }
 
 .intro {
@@ -659,3 +665,64 @@ html.is-hero-lock {
   }
 }
 
+
+/* ---------- nav jump veil ---------- */
+.nav-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: none;
+  place-items: center;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-veil-mark {
+  display: grid;
+  grid-template-columns: repeat(2, 9px);
+  gap: 4px;
+}
+
+.nav-veil-mark i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  background: #fe63a0;
+  animation: veil-blink 0.36s steps(2, end) infinite;
+}
+
+.nav-veil-mark i:nth-child(2),
+.nav-veil-mark i:nth-child(3) {
+  background: #ffc1dc;
+  animation-delay: 0.18s;
+}
+
+@keyframes veil-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* ---------- site background pattern: tiny pixel squares + the odd cross stitch ---------- */
+:root {
+  --pattern-squares: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Crect x='13' y='13' width='2.5' height='2.5' fill='%23fe63a0' fill-opacity='.24'/%3E%3C/svg%3E");
+  --pattern-crosses: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='224' height='196'%3E%3Csvg x='34' y='30' width='9' height='8.1' viewBox='0 0 92 82'%3E%3Cpath d='M10.02 19.13 65.58 73.8c2.73 1.82 5.47 1.82 9.11 1.82 5.47 0 10.02-2.73 10.02-9.11 0-4.56-.91-10.02-4.55-13.67L29.15 1.82C27.33 0 25.5 0 23.68 0 16.4 0 6.38.91 6.38 10.93c0 2.74 0 5.47 3.64 8.2ZM20.04 79.27 41.9 59.22 24.59 41.91.91 62.87C0 63.78 0 67.42 0 68.33 0 75.62 5.47 82 12.75 82c2.73 0 4.56-.91 7.29-2.73ZM70.14 36.44 89.27 19.13C91.09 17.31 92 14.58 92 11.84 92 5.47 83.8.91 77.43.91c-2.74 0-6.38 0-8.2 1.82L51.01 18.22l19.13 18.22Z' fill='%23fe63a0' fill-opacity='.45'/%3E%3C/svg%3E%3Csvg x='150' y='124' width='7' height='6.3' viewBox='0 0 92 82'%3E%3Cpath d='M10.02 19.13 65.58 73.8c2.73 1.82 5.47 1.82 9.11 1.82 5.47 0 10.02-2.73 10.02-9.11 0-4.56-.91-10.02-4.55-13.67L29.15 1.82C27.33 0 25.5 0 23.68 0 16.4 0 6.38.91 6.38 10.93c0 2.74 0 5.47 3.64 8.2ZM20.04 79.27 41.9 59.22 24.59 41.91.91 62.87C0 63.78 0 67.42 0 68.33 0 75.62 5.47 82 12.75 82c2.73 0 4.56-.91 7.29-2.73ZM70.14 36.44 89.27 19.13C91.09 17.31 92 14.58 92 11.84 92 5.47 83.8.91 77.43.91c-2.74 0-6.38 0-8.2 1.82L51.01 18.22l19.13 18.22Z' fill='%23ffc1dc' fill-opacity='.35'/%3E%3C/svg%3E%3Csvg x='186' y='24' width='6' height='5.4' viewBox='0 0 92 82'%3E%3Cpath d='M10.02 19.13 65.58 73.8c2.73 1.82 5.47 1.82 9.11 1.82 5.47 0 10.02-2.73 10.02-9.11 0-4.56-.91-10.02-4.55-13.67L29.15 1.82C27.33 0 25.5 0 23.68 0 16.4 0 6.38.91 6.38 10.93c0 2.74 0 5.47 3.64 8.2ZM20.04 79.27 41.9 59.22 24.59 41.91.91 62.87C0 63.78 0 67.42 0 68.33 0 75.62 5.47 82 12.75 82c2.73 0 4.56-.91 7.29-2.73ZM70.14 36.44 89.27 19.13C91.09 17.31 92 14.58 92 11.84 92 5.47 83.8.91 77.43.91c-2.74 0-6.38 0-8.2 1.82L51.01 18.22l19.13 18.22Z' fill='%23a3b8c8' fill-opacity='.3'/%3E%3C/svg%3E%3C/svg%3E");
+}
+
+/* ---------- the Mable palette (one set, used everywhere) ----------
+   Ink is the stage, hot pink leads, baby pink + mauve support,
+   dusk blue / deep blue / butter are small accents only. */
+:root {
+  --m-ink: #000000;
+  --m-ink-2: #0b0a0b;
+  --m-text: #f3ecee;
+  --m-muted: #9a9396;
+  --m-line: rgb(243 236 238 / 0.14);
+  --m-hot: #fe63a0;
+  --m-baby: #ffc1dc;
+  --m-mauve: #d7bdc7;
+  --m-dusk: #a3b8c8;
+  --m-deep: #506c82;
+  --m-butter: #d5d0ad;
+}

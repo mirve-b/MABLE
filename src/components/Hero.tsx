@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import star from "../assets/deco/star.webp";
 import { GLOW_INNER, GLOW_STEP } from "../grid/constants";
 import { gsap } from "../gsap";
-import { PINK, riseLetters } from "../heroPlay";
+import { exitLetters, PINK, riseLetters } from "../heroPlay";
 import { isCoarsePointer } from "../perf";
 import { attachTextSparkles } from "../textSparkles";
 import "../hero.css";
@@ -14,7 +14,7 @@ function edgeHash(x: number, y: number) {
   return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
 }
 
-function paintHeroEdge(canvas: HTMLCanvasElement) {
+export function paintHeroEdge(canvas: HTMLCanvasElement) {
   const step = GLOW_STEP;
   const inner = GLOW_INNER;
   const rows = 7;
@@ -44,11 +44,21 @@ function paintHeroEdge(canvas: HTMLCanvasElement) {
       stamp(col, rows * 2 - 1 - row);
     }
   }
+  // one gradient across the whole border: ink on top (over the pink sky), pink at the bottom (over black)
+  const fade = ctx.createLinearGradient(0, 0, 0, cssH);
+  fade.addColorStop(0, "#000000");
+  fade.addColorStop(0.42, "#000000");
+  fade.addColorStop(0.62, "#782344");
+  fade.addColorStop(1, "#fe63a0");
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, 0, cssW, cssH);
+  ctx.globalCompositeOperation = "source-over";
 }
 
 const LINES = ["The internet is too interesting", "to be this boring."];
 const PHONE_LINES = ["The internet is", "too interesting", "to be this boring."];
-const SUB = "Human-made brands & apps. Weird on purpose, built to work.";
+const SUB = "Maximal brands & apps, designed by artists and engineered to work.";
 
 function HeroLine({ text, className = "" }: { text: string; className?: string }) {
   return (
@@ -119,13 +129,29 @@ export function Hero() {
       cover.to(sub, { autoAlpha: 1, y: 0, duration: 0.3, ease: "none" }, ">-0.1");
       cover.to(cue, { autoAlpha: 1, y: 0, duration: 0.2, ease: "none" }, ">");
 
-      // On the way out the statement drifts up and thins out, so the collage reads as the next beat.
-      gsap.to(hero.querySelector(".hero-mark"), {
-        yPercent: -38,
-        autoAlpha: 0.15,
-        ease: "none",
-        scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true },
+    }, hero);
+    return () => ctx.revert();
+  }, []);
+
+  // Scrolling past: the two lines slide apart and the letters glitch out upward, one by one.
+  useLayoutEffect(() => {
+    const hero = root.current;
+    if (!hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const coarse = isCoarsePointer();
+    const ctx = gsap.context(() => {
+      const rows = gsap.utils.toArray<HTMLElement>(".hero-line-row", hero);
+      const letters = gsap.utils.toArray<HTMLElement>(".hero-letter", hero);
+      const out = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: { trigger: hero, start: "top top", end: "bottom 25%", scrub: 0.5 },
       });
+      rows.forEach((row, i) => {
+        out.to(row, { x: () => (i % 2 ? 1 : -1) * window.innerWidth * 0.12, skewX: i % 2 ? 8 : -8, duration: 1 }, 0);
+      });
+      exitLetters(letters, 0.15, out, coarse, { move: 0.5, stagger: 0.012 });
+      out.to(".hero-sub", { letterSpacing: "0.6em", autoAlpha: 0, duration: 0.6 }, 0.1);
+      out.to(".hero-cue", { autoAlpha: 0, y: 20, duration: 0.3 }, 0);
+      out.to(".fx-slot .spark", { scale: 1.6, rotation: 40, autoAlpha: 0, duration: 0.8, stagger: 0.05 }, 0.1);
     }, hero);
     return () => ctx.revert();
   }, []);
@@ -180,7 +206,7 @@ export function Hero() {
             <span className="hero-sub">{SUB}</span>
           </h1>
         </div>
-        <a className="hero-cue" href="#made-by-humans" aria-label="Keep scrolling">
+        <a className="hero-cue" href="#made-by-artists" aria-label="Keep scrolling">
           <span>keep scrolling</span>
           <i aria-hidden="true" />
         </a>

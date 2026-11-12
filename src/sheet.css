@@ -807,61 +807,11 @@
   margin: 54px var(--edge) 88px;
 }
 
-.process-deck {
-  display: flex;
-  align-items: stretch;
-  height: 520px;
-  background: #e4c9d2;
-}
 
-.step {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 96px;
-  height: 100%;
-  margin-right: -16px;
-  overflow: hidden;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-  transition: flex-basis 0.65s cubic-bezier(0.76, 0, 0.18, 1);
-}
 
-.step.is-open {
-  z-index: 3;
-  flex-basis: 520px;
-  margin-right: 0;
-}
 
-.step-face {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 520px;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-  object-position: left center;
-  pointer-events: none;
-}
 
-.process-folder {
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 180px;
-  overflow: hidden;
-}
 
-.process-folder img {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  height: 100%;
-  width: auto;
-  max-width: none;
-  transform: translateX(-50%);
-}
 
 .process-note {
   position: absolute;
@@ -953,7 +903,7 @@
 }
 
 .invite-btn:hover {
-  background: #d5e0e6;
+  background: var(--m-baby);
 }
 
 .footer {
@@ -1119,25 +1069,11 @@
     font-size: 36px;
   }
 
-  .process-deck {
-    height: 420px;
-  }
 
-  .step {
-    flex-basis: 78px;
-  }
 
-  .step.is-open {
-    flex-basis: 360px;
-  }
 
-  .step-face {
-    width: 360px;
-  }
 
-  .process-folder {
-    min-width: 120px;
-  }
+
 }
 
 @media (max-width: 760px) {
@@ -1340,10 +1276,6 @@
     padding-top: 0;
   }
 
-  .process {
-    display: none;
-  }
-
   .weird {
     order: 1;
     padding-top: 18px;
@@ -1502,7 +1434,85 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .step {
+  .pc-step {
     transition: none;
+  }
+}
+
+.made-ext {
+  overflow: visible;
+}
+
+/* ---------- project arrows: a little glitch every few seconds that says "click me" ---------- */
+.made.is-full .made-ext img {
+  animation: ext-glitch 3.2s steps(1, end) infinite;
+  animation-delay: calc(var(--i, 0) * 0.55s);
+}
+
+.made.is-full .made-item:nth-child(2) .made-ext img { --i: 1; }
+.made.is-full .made-item:nth-child(3) .made-ext img { --i: 2; }
+.made.is-full .made-item:nth-child(4) .made-ext img { --i: 3; }
+
+@keyframes ext-glitch {
+  0%,
+  78%,
+  100% {
+    translate: 0 0;
+    opacity: 1;
+    filter: none;
+  }
+  80% {
+    translate: 3px -3px;
+    filter: drop-shadow(-3px 0 0 #fe63a0) drop-shadow(3px 0 0 #a3b8c8);
+  }
+  83% {
+    translate: -2px 1px;
+    opacity: 0.35;
+    filter: drop-shadow(2px 0 0 #ffc1dc);
+  }
+  86% {
+    translate: 4px -4px;
+    opacity: 1;
+    filter: drop-shadow(-2px 1px 0 #d5d0ad) drop-shadow(0 0 6px #fe63a0);
+  }
+  89% {
+    translate: 0 0;
+    filter: brightness(1.6) drop-shadow(0 0 6px #fe63a0);
+  }
+}
+
+/* hovering a project: the arrow keeps glitching and nudges toward the link */
+@media (hover: hover) and (pointer: fine) {
+  .made.is-full .made-item:hover .made-ext img {
+    animation: ext-glitch-hot 0.9s steps(1, end) infinite;
+  }
+}
+
+@keyframes ext-glitch-hot {
+  0%,
+  100% {
+    translate: 3px -3px;
+    filter: brightness(1.5) drop-shadow(0 0 6px #fe63a0);
+  }
+  30% {
+    translate: 5px -5px;
+    filter: drop-shadow(-3px 0 0 #fe63a0) drop-shadow(3px 0 0 #a3b8c8);
+  }
+  55% {
+    translate: 2px -2px;
+    opacity: 0.6;
+    filter: drop-shadow(2px 0 0 #ffc1dc);
+  }
+  75% {
+    translate: 4px -4px;
+    opacity: 1;
+    filter: brightness(1.6) drop-shadow(0 0 8px #fe63a0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .made.is-full .made-ext img,
+  .made.is-full .made-item:hover .made-ext img {
+    animation: none;
   }
 }

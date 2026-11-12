@@ -9,7 +9,7 @@ const LINKS = [
   { href: "/#about", label: "About" },
   { href: "/#work", label: "Work" },
   { href: "/#services", label: "Services" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact", kind: "contact" },
 ] as const;
 
@@ -206,7 +206,7 @@ export function Nav() {
         <span className="nav-studio">Design X Code Studio</span>
       </a>
       <a className="nav-bunny" href="/" aria-label="Mable">
-        <img src={rabbitMark} alt="" />
+        <span className="nav-icon" style={{ "--icon": `url("${rabbitMark}")` } as CSSProperties} />
       </a>
       <div className="nav-links" ref={links}>
         {LINKS.map((link) => (
@@ -227,7 +227,7 @@ export function Nav() {
         aria-controls="nav-panel"
         onClick={() => setOpen((current) => !current)}
       >
-        <img src={menuMark} alt="" />
+        <span className="nav-icon" style={{ "--icon": `url("${menuMark}")` } as CSSProperties} />
       </button>
       <div className="nav-panel" id="nav-panel" aria-hidden={!open}>
         {LINKS.map((link) => (

@@ -75,6 +75,8 @@ type SparkleOpts = {
 export function attachTextSparkles({ field, anchor, live, density, halo, around }: SparkleOpts) {
   const coarse = isCoarsePointer();
   const intro = density === "intro";
+  // Phones keep sparkles still: no twinkling text sparkles outside the intro splash.
+  if (coarse && !intro) return () => undefined;
   let cancelled = false;
   const timers = new Set<number>();
   const later = (fn: () => void, ms: number) => {

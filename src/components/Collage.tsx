@@ -7,6 +7,9 @@ import rabbit from "../assets/deco/rabbit-watercolor.webp";
 import star from "../assets/deco/star.webp";
 import stickyPink from "../assets/deco/sticky-pink.webp";
 import stickyYellow from "../assets/deco/sticky-yellow.webp";
+import { AboutConcept, aboutReveal } from "./AboutConcept";
+import { MASKS, type MaskName } from "../grid/masks";
+import { attachMotifBurst } from "../motifBurst";
 import { gsap } from "../gsap";
 import { isCoarsePointer } from "../perf";
 import { attachTextSparkles } from "../textSparkles";
@@ -15,7 +18,7 @@ import "../collage.css";
 /**
  * A few cute pieces floating around the headline — placed on a loose ring so nothing covers the type.
  * x / y: centre in % of the stage. w: width in vw (scaled on phones). d: depth for drift + cursor parallax.
- * kind "dots" is a CSS polka-dot paper card instead of an image.
+ * motif: one of the Mable grid marks, drawn in cross stitches (hover makes it burst, like the splash).
  */
 type Piece = {
   x: number;
@@ -24,14 +27,16 @@ type Piece = {
   r: number;
   d: number;
   src?: string;
-  dots?: "pink" | "blue" | "butter";
+  motif?: Exclude<MaskName, "mable">;
+  tone?: string;
   desk?: boolean;
 };
 
 const PIECES: Piece[] = [
-  { dots: "pink", x: 15, y: 30, w: 13, r: -8, d: 0.35 },
-  { dots: "blue", x: 85, y: 70, w: 12, r: 7, d: 0.35 },
-  { dots: "butter", x: 80, y: 22, w: 9, r: 10, d: 0.45, desk: true },
+  { motif: "cat", tone: "#FFC1DC", x: 14, y: 31, w: 15, r: -6, d: 0.35 },
+  { motif: "rabbit", tone: "#A3B8C8", x: 86, y: 66, w: 8, r: 6, d: 0.4 },
+  { motif: "heart", tone: "#FE63A0", x: 47, y: 12, w: 5.5, r: -8, d: 0.55 },
+  { motif: "symbols", tone: "#D5D0AD", x: 57, y: 91, w: 9, r: 4, d: 0.45, desk: true },
   { src: star, x: 30, y: 9, w: 6, r: -8, d: 1.2 },
   { src: stickyPink, x: 7, y: 54, w: 7, r: -10, d: 0.9, desk: true },
   { src: quite, x: 81, y: 21, w: 11, r: 6, d: 1 },
@@ -52,6 +57,13 @@ const TAGS = [
 
 const GLITCH = ["#A3B8C8", "#D5D0AD", "#FFC1DC", "#D9D9D9", "#D7BDC7", "#FE63A0"];
 const PIXEL_COUNT = 40;
+const BURST_COUNT = 96;
+const BURST_KINDS = ["square", "star", "diamond", "cross", "square", "star"] as const;
+const BURST_COLORS = ["#FE63A0", "#FF3D8E", "#FFC1DC", "#FFFFFF", "#FE63A0", "#D5D0AD", "#A3B8C8"];
+
+function rand(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
 
 function hash(i: number, salt: number) {
   const n = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
@@ -74,10 +86,41 @@ function Letters({ text }: { text: string }) {
   );
 }
 
+/** A grid mark cropped to its lit cells: each stitch is a span placed in % of the motif box. */
+function Motif({ name }: { name: Exclude<MaskName, "mable"> }) {
+  const rows = MASKS[name];
+  const lit: [number, number][] = [];
+  rows.forEach((line, r) => {
+    for (let c = 0; c < line.length; c += 1) if (line[c] === "X") lit.push([c, r]);
+  });
+  const c0 = Math.min(...lit.map(([c]) => c));
+  const c1 = Math.max(...lit.map(([c]) => c));
+  const r0 = Math.min(...lit.map(([, r]) => r));
+  const r1 = Math.max(...lit.map(([, r]) => r));
+  const cols = c1 - c0 + 1;
+  const rowCount = r1 - r0 + 1;
+  return (
+    <span className="motif" style={{ aspectRatio: `${cols} / ${rowCount}` } as CSSProperties}>
+      {lit.map(([c, r]) => (
+        <span
+          key={`${c}-${r}`}
+          className="motif-cell"
+          style={{
+            left: `${((c - c0) / cols) * 100}%`,
+            top: `${((r - r0) / rowCount) * 100}%`,
+            width: `${100 / cols}%`,
+            height: `${90 / rowCount}%`,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
 function PieceEl({ p }: { p: Piece }) {
   return (
     <figure
-      className={`piece${p.desk ? " piece-desk" : ""}${p.dots ? ` is-dots is-${p.dots}` : ""}`}
+      className={`piece${p.desk ? " piece-desk" : ""}${p.motif ? " is-motif" : ""}`}
       data-x={p.x}
       data-y={p.y}
       data-r={p.r}
@@ -87,12 +130,13 @@ function PieceEl({ p }: { p: Piece }) {
           left: `${p.x}%`,
           top: `${p.y}%`,
           "--w": p.w,
+          "--tone": p.tone,
           transform: `translate(-50%, -50%) rotate(${p.r}deg)`,
         } as CSSProperties
       }
     >
       <div className="piece-par">
-        {p.src ? <img src={p.src} alt="" loading="lazy" decoding="async" draggable={false} /> : <span className="piece-paper" />}
+        {p.src ? <img src={p.src} alt="" loading="lazy" decoding="async" draggable={false} /> : p.motif ? <Motif name={p.motif} /> : null}
       </div>
     </figure>
   );
@@ -114,6 +158,20 @@ export function Collage() {
     const letters = gsap.utils.toArray<HTMLElement>(".collage-letter", section);
     const kicker = section.querySelector(".collage-kicker");
     const note = section.querySelector(".collage-note");
+    const flash = section.querySelector(".collage-flash");
+    const bits = gsap.utils.toArray<HTMLElement>(".burst-bit", section);
+    // Each burst sparkle starts at one of the letters of ZERO (layout offsets, so in-flight transforms don't skew it)
+    const origin = (i: number) => {
+      const letter = letters[i % letters.length];
+      const row = head.querySelector(".collage-row.is-big") as HTMLElement | null;
+      if (!letter || !row) return { x: 0, y: 0 };
+      const stageBox = stage.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      return {
+        x: rowBox.left - stageBox.left + letter.offsetLeft + letter.offsetWidth / 2 - stageBox.width / 2,
+        y: rowBox.top - stageBox.top + letter.offsetTop + letter.offsetHeight * 0.5 - stageBox.height / 2 + (hash(i, 14) - 0.5) * 60,
+      };
+    };
 
     if (reduce) {
       section.classList.add("is-still");
@@ -139,7 +197,7 @@ export function Collage() {
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: section,
-          start: "top top",
+          start: "top 70%",
           end: "bottom bottom",
           scrub: 0.7,
           invalidateOnRefresh: true,
@@ -184,9 +242,100 @@ export function Collage() {
       });
       tl.to(tags, { y: (i) => (i % 2 ? -26 : -14), duration: 3 }, 3);
 
-      // Act 3 — zoom through the field into the next section (6 → 10)
-      tl.to(world, { scale: 2.8, autoAlpha: 0, duration: 3.2, ease: "power2.in" }, 6);
-      tl.to(head, { scale: 4.2, autoAlpha: 0, duration: 3, ease: "power2.in" }, 6.4);
+      // Act 3 — ZERO explodes into a burst of sparkles (6 → 10)
+      tl.add(() => {
+        const back = tl.scrollTrigger!.direction < 0;
+        stage.classList.toggle("is-glitching", back);
+        stage.classList.toggle("is-bursting", !back);
+      }, 5.95);
+      tl.fromTo(flash, { scale: 0.2, autoAlpha: 0 }, { scale: 1.6, autoAlpha: 0.9, duration: 0.35, ease: "power2.out" }, 6);
+      tl.to(flash, { scale: 3.2, autoAlpha: 0, duration: 0.9, ease: "power1.in" }, 6.35);
+      tl.to(kicker, { y: -60, autoAlpha: 0, letterSpacing: "1.4em", duration: 0.8 }, 6.05);
+      tl.to(note, { y: 60, autoAlpha: 0, duration: 0.6 }, 6.05);
+      letters.forEach((letter, i) => {
+        const side = i - (letters.length - 1) / 2;
+        tl.to(
+          letter,
+          {
+            x: side * rand(90, 170) + rand(-60, 60),
+            y: rand(-320, 320),
+            rotation: rand(-120, 120),
+            scale: rand(0.15, 0.5),
+            autoAlpha: 0,
+            duration: 1.3,
+            ease: "power3.out",
+            onUpdate() {
+              const p = this.progress();
+              letter.style.color = p > 0 && p < 0.55 ? (BURST_COLORS[Math.floor(p * 14) % BURST_COLORS.length] ?? "") : "";
+            },
+          },
+          6.08 + Math.abs(side) * 0.03,
+        );
+      });
+      bits.forEach((bit, i) => {
+        const angle = (i / bits.length) * Math.PI * 2 + rand(-0.4, 0.4);
+        const reach = rand(0.18, 0.62);
+        const at = 6.08 + rand(0, 0.35);
+        tl.fromTo(
+          bit,
+          { x: () => origin(i).x, y: () => origin(i).y, scale: 0, autoAlpha: 0, rotation: 0 },
+          {
+            x: () => origin(i).x + Math.cos(angle) * window.innerWidth * reach * 0.55,
+            y: () => origin(i).y + Math.sin(angle) * window.innerHeight * reach * 0.75,
+            scale: rand(0.8, 1.6),
+            autoAlpha: 1,
+            rotation: rand(-90, 90),
+            duration: 0.55,
+            ease: "power3.out",
+            immediateRender: false,
+          },
+          at,
+        );
+        tl.to(
+          bit,
+          {
+            x: () => origin(i).x + Math.cos(angle) * window.innerWidth * reach,
+            y: () => origin(i).y + Math.sin(angle) * window.innerHeight * reach * 1.25 + 60,
+            scale: 0,
+            autoAlpha: 0,
+            rotation: rand(-220, 220),
+            duration: rand(1.4, 2.4),
+            ease: "power1.in",
+          },
+          at + 0.55,
+        );
+      });
+      // The paper pieces and tags get blown off-screen by the blast, so the stage is clear before the tapes arrive.
+      const away = (el: HTMLElement, push: number) => {
+        const host = stage.getBoundingClientRect();
+        const dx = el.offsetLeft + el.offsetWidth / 2 - host.width / 2;
+        const dy = el.offsetTop + el.offsetHeight / 2 - host.height / 2;
+        const len = Math.hypot(dx, dy) || 1;
+        return { x: (dx / len) * window.innerWidth * push, y: (dy / len) * window.innerHeight * push };
+      };
+      pieces.forEach((el, i) => {
+        tl.to(
+          el,
+          {
+            x: () => away(el, 0.75).x,
+            y: () => away(el, 0.75).y,
+            rotation: Number(el.dataset.r) + (hash(i, 4) - 0.5) * 140,
+            autoAlpha: 0,
+            duration: 1.1,
+            ease: "power2.in",
+          },
+          6.15 + hash(i, 6) * 0.25,
+        );
+      });
+      tl.to(tags, { y: (i) => (i % 2 ? -220 : 220), autoAlpha: 0, duration: 0.8, ease: "power2.in" }, 6.2);
+      tl.to(world, { scale: 1.6, autoAlpha: 0, duration: 1.2, ease: "power2.in" }, 6.4);
+      // The empty screen after the blast: About + concept play in (time-based, quick), then hold as you scroll on.
+      const about = aboutReveal(stage);
+      tl.add(() => {
+        if (tl.scrollTrigger!.direction > 0) about.timeScale(1).play();
+        else about.timeScale(2).reverse();
+      }, 7.0);
+      tl.to({}, { duration: 2.2 }, 7.6);
     }, section);
 
     // Cursor parallax lives on an inner wrapper so it never fights the scroll timeline.
@@ -222,15 +371,18 @@ export function Collage() {
       },
     });
 
+    const stopMotifs = attachMotifBurst(section);
+
     return () => {
       stopParallax();
+      stopMotifs();
       stopSparkles?.();
       ctx.revert();
     };
   }, []);
 
   return (
-    <section className="collage" id="made-by-humans" ref={root} aria-label="Made by humans">
+    <section className="collage" id="made-by-artists" ref={root} aria-label="Zero interest in ordinary">
       <div className="collage-stage">
         <div className="collage-pixels" aria-hidden="true">
           {Array.from({ length: PIXEL_COUNT }, (_, i) => (
@@ -261,13 +413,31 @@ export function Collage() {
           ))}
         </div>
         <h2 className="collage-head">
-          <span className="collage-kicker">Made by</span>
-          <span className="collage-row is-big" data-text="HUMANS.">
-            <Letters text="HUMANS." />
+          <span className="collage-row is-big" data-text="ZERO">
+            <Letters text="ZERO" />
           </span>
-          <span className="collage-note">no templates · no beige · just people</span>
+          <span className="collage-kicker">interest in ordinary.</span>
+          <span className="collage-note">brands · websites · apps · other obsessions</span>
         </h2>
+        <div className="collage-flash" aria-hidden="true" />
+        <div className="collage-burst" aria-hidden="true">
+          {Array.from({ length: isCoarsePointer() ? 32 : BURST_COUNT }, (_, i) => (
+            <span key={i} className="burst-bit">
+              <span
+                className={`burst-core is-${BURST_KINDS[i % BURST_KINDS.length]}`}
+                style={
+                  {
+                    "--c": BURST_COLORS[Math.floor(hash(i, 11) * BURST_COLORS.length)],
+                    "--s": `${(6 + hash(i, 12) * 12).toFixed(1)}px`,
+                    "--blink": `${(0.18 + hash(i, 13) * 0.3).toFixed(2)}s`,
+                  } as CSSProperties
+                }
+              />
+            </span>
+          ))}
+        </div>
         <div className="collage-glints" aria-hidden="true" />
+        <AboutConcept />
       </div>
     </section>
   );

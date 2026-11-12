@@ -1,0 +1,180 @@
+/* ---------- About + concept: sits on the collage's last, empty screen ---------- */
+/* Placed in % of the frame, matching the design: about box upper-left, concept stepped down-right. */
+
+.ac {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  color: #ece5e8;
+  font-family: "Avenir Next", Avenir, Outfit, sans-serif;
+  /* plain black: covers the collage's pattern while about is up */
+  background: #000;
+  pointer-events: none;
+}
+
+/* the strobe flash at the start of the intro */
+.ac-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(ellipse at 35% 35%, #ffc1dc, #fe63a0 45%, #782344 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ac-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.ac-line {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(14px, 1.45vw, 20px);
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+}
+
+.ac-word {
+  display: inline-block;
+}
+
+/* about: thin frame, the taped heading hangs off its top-left corner */
+.ac-about {
+  --frame: 1;
+  position: relative;
+  box-sizing: border-box;
+  width: 35.7%;
+  margin-left: 22.7%;
+  padding: 2.7% 3.9% 2.6% 4.1%;
+}
+
+.ac-about::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(236 229 232 / 0.6);
+  clip-path: inset(0 calc((1 - var(--frame)) * 100%) 0 0);
+}
+
+.ac-heading {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 57%;
+  height: auto;
+  translate: -23% -59%; /* gsap takes this over as xPercent/yPercent in the intro */
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.5));
+  user-select: none;
+}
+
+/* pixel shards that fly off the heading on impact */
+.ac-shards {
+  position: absolute;
+  left: 14%;
+  top: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+}
+
+.ac-shard {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  box-shadow: 0 0 10px rgb(254 99 160 / 0.6);
+}
+
+.ac-shard.is-cross {
+  width: 12px;
+  height: 11px;
+  box-shadow: none;
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+}
+
+/* concept: pink label, right-aligned over its text */
+.ac-concept {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 27.7%;
+  margin-left: 51.3%;
+}
+
+.ac-label {
+  margin: 0 0 0.6em;
+  padding: 0.14em 1.45em 0.08em;
+  background: #d7bdc7;
+  color: #0b0b0b;
+  font-family: Arapey, "Times New Roman", serif;
+  font-size: clamp(16px, 1.9vw, 26px);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.ac-lead-ch {
+  display: inline-block;
+}
+
+.ac-lead-gap {
+  display: inline-block;
+  width: 0.3em;
+}
+
+.ac-lead {
+  align-self: stretch;
+  margin: 0 0 0.35em;
+  font-weight: 600;
+  font-size: clamp(16px, 1.7vw, 24px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ac-concept .ac-line {
+  align-self: stretch;
+}
+
+/* reduced motion keeps the collage still; the overlay would sit on top of it */
+.collage.is-still .ac {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .ac-stage {
+    gap: 30px;
+    padding: 0 22px;
+  }
+
+  .ac-about {
+    width: auto;
+    margin: 60px 0 0 18px;
+    padding: 34px 20px 22px 28px;
+  }
+
+  .ac-heading {
+    width: min(48vw, 190px);
+    translate: -14% -62%;
+  }
+
+  .ac-concept {
+    width: auto;
+    margin-left: 18px;
+  }
+
+  .ac-line {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+}

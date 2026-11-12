@@ -6,11 +6,20 @@ import star from "../assets/deco/star.webp";
 import { gsap } from "../gsap";
 import { PINK, riseLetters } from "../heroPlay";
 import { isCoarsePointer } from "../perf";
+import { attachTeamWave } from "../teamWave";
 
 const TITLE = "Meet the troublemakers.";
 
 export function Team() {
   const root = useRef<HTMLElement>(null);
+  const waveRef = useRef<HTMLCanvasElement>(null);
+
+  useLayoutEffect(() => {
+    const section = root.current;
+    const canvas = waveRef.current;
+    if (!section || !canvas) return;
+    return attachTeamWave(canvas, section);
+  }, []);
 
   useLayoutEffect(() => {
     const section = root.current;
@@ -55,7 +64,8 @@ export function Team() {
   }, []);
 
   return (
-    <section className="team-section" id="about" ref={root}>
+    <section className="team-section" id="team" ref={root}>
+      <canvas className="tm-wave" ref={waveRef} aria-hidden="true" />
       <h2 className="team-title">
         <span className="hero-line">
           <span className="hero-line-row">

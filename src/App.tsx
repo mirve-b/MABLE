@@ -1,13 +1,16 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { Billboard } from "./components/Billboard";
 import { Collage } from "./components/Collage";
 import { ContactPage } from "./components/ContactPage";
+import { FaqPage } from "./components/FaqPage";
+import { BrandPage } from "./components/BrandPage";
 import { CursorFx } from "./components/CursorFx";
 import { GridExport } from "./components/GridExport";
 import { Hero } from "./components/Hero";
 import { Intro } from "./components/Intro";
 import { WandLayer } from "./components/LiquidBackground";
 import { LogoBurst } from "./components/LogoBurst";
+import { MobileSite } from "./components/MobileSite";
 import { Marquee } from "./components/Marquee";
 import { Nav } from "./components/Nav";
 import { ScrollGlow } from "./components/ScrollGlow";
@@ -16,24 +19,47 @@ import { Team } from "./components/Team";
 import { ScrollTrigger } from "./gsap";
 import { useCursorFx } from "./hooks/useCursorFx";
 import { isCoarsePointer } from "./perf";
-import { attachSmoothScroll } from "./smoothScroll";
+import { attachSmoothScroll, jumpTo } from "./smoothScroll";
 import "./home.css";
 import { introHeight, peekView, rememberView, shouldPlayIntroSplash, shouldPlayLogoBurst } from "./view";
 
 const isGridExport =
   new URLSearchParams(window.location.search).get("export") === "grid";
 
+const PHONE_QUERY = "(max-width: 760px)";
+const subscribePhone = (onChange: () => void) => {
+  const mq = window.matchMedia(PHONE_QUERY);
+  mq.addEventListener("change", onChange);
+  // backup: some browsers only fire the media change on their next paint
+  window.addEventListener("resize", onChange);
+  return () => {
+    mq.removeEventListener("change", onChange);
+    window.removeEventListener("resize", onChange);
+  };
+};
+const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
+/** true once the visitor has crossed the phone/desktop breakpoint: the swap shouldn't replay the splash */
+let swapped = false;
+let firstLayout: boolean | null = null;
+
 export default function App() {
+  const phone = useSyncExternalStore(subscribePhone, isPhone);
+  if (firstLayout === null) firstLayout = phone;
+  else if (phone !== firstLayout) swapped = true;
   if (isGridExport) return <GridExport />;
   if (window.location.pathname === "/contact") return <ContactPage />;
-  return <Site />;
+  if (window.location.pathname === "/faq") return <FaqPage />;
+  if (window.location.pathname === "/brand") return <BrandPage />;
+  // Phones get a clean, simple site: no canvases, sparkles, pixels or scroll-driven scenes.
+  // Live: crossing the breakpoint swaps versions without a reload (keyed so each mounts fresh).
+  return phone ? <MobileSite key="phone" /> : <Site key="desk" />;
 }
 
 function Site() {
   const cursor = useCursorFx();
   const coarse = isCoarsePointer();
-  const splash = shouldPlayIntroSplash();
-  const [burst, setBurst] = useState(() => shouldPlayLogoBurst());
+  const splash = !swapped && shouldPlayIntroSplash();
+  const [burst, setBurst] = useState(() => !swapped && shouldPlayLogoBurst());
 
   const onBurstDone = useCallback(() => {
     setBurst(false);
@@ -41,7 +67,7 @@ function Site() {
   }, []);
 
   useLayoutEffect(() => {
-    if (shouldPlayLogoBurst()) setBurst(true);
+    if (!swapped && shouldPlayLogoBurst()) setBurst(true);
   }, []);
 
   useLayoutEffect(() => attachSmoothScroll(), []);
@@ -56,7 +82,24 @@ function Site() {
     }
 
     const refresh = () => ScrollTrigger.refresh();
+    let landedOnHash = false;
     const restore = () => {
+      // Arriving with a section in the URL (e.g. a nav link from /contact): land right on it.
+      const hash = window.location.hash;
+      const target = hash && hash !== "#top" ? document.querySelector(hash) : null;
+      if (target) {
+        refresh();
+        if (!landedOnHash && document.readyState === "complete") {
+          landedOnHash = true;
+          jumpTo(target);
+        }
+        return;
+      }
+      if (swapped) {
+        window.scrollTo(0, 0);
+        refresh();
+        return;
+      }
       if (splash || shouldPlayIntroSplash()) {
         window.scrollTo(0, 0);
         refresh();
@@ -110,6 +153,7 @@ function Site() {
           <Intro splash={splash} />
           <Hero />
         </div>
+        <div className="sky-mirror" aria-hidden="true" />
         <Collage />
         <Marquee />
         <main className="paper-run">

@@ -4,6 +4,8 @@ import mable from "../assets/deco/mable.svg";
 import star from "../assets/deco/star.webp";
 import { gsap, ScrollTrigger } from "../gsap";
 import { isCoarsePointer } from "../perf";
+import { PROJECTS } from "../content";
+import { isJumping, scrollToTarget } from "../smoothScroll";
 
 declare global {
   interface Window {
@@ -18,32 +20,6 @@ const NAME_PINK = "#fe63a0";
 const COPY_REST = "#8d8d8d";
 const GLITCH = ["#A3B8C8", "#D5D0AD", "#FFC1DC", "#D9D9D9", "#D7BDC7"];
 
-const PROJECTS = [
-  {
-    name: "POLL-E",
-    tagline: "Project tagline | one line description",
-    services: "services",
-    href: "https://mable.cc",
-  },
-  {
-    name: "PROJECT - X",
-    tagline: "Project tagline | one line description",
-    services: "services",
-    href: "https://mable.cc",
-  },
-  {
-    name: "POLL-E",
-    tagline: "Project tagline | one line description",
-    services: "services",
-    href: "https://mable.cc",
-  },
-  {
-    name: "POLL-E",
-    tagline: "Project tagline | one line description",
-    services: "services",
-    href: "https://mable.cc",
-  },
-] as const;
 
 function Letters({ text, className }: { text: string; className: string }) {
   return (
@@ -192,32 +168,17 @@ export function Made() {
       gsap.set(copyGlyphs, { yPercent: 118, color: COPY_REST, autoAlpha: 1 });
       gsap.set(arrows, { yPercent: 118, autoAlpha: 1, filter: "none" });
 
-      if (titleEl) {
-        const titleTl = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            trigger: titleEl,
-            start: "top 90%",
-            toggleActions: "play none none reverse",
-          },
-        });
-        titleLetters.forEach((letter, index) => glitchIn(titleTl, letter, TITLE_REST, index * 0.02));
-      }
-
-      const wave = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: listEl,
-          start: "top 86%",
-          toggleActions: "play none none reverse",
-        },
-      });
+      // One "fire and play" timeline: when the section arrives, the frame opens to the full window,
+      // then the title and every project row glitch in. It plays on its own; scrolling back reverses it.
+      const wave = gsap.timeline({ defaults: { ease: "none" }, paused: true });
+      const ROWS_AT = 0.95;
+      if (titleEl) titleLetters.forEach((letter, index) => glitchIn(wave, letter, TITLE_REST, 0.55 + index * 0.02));
       items.forEach((item, index) => {
         const name = item.querySelector(".made-name") as HTMLElement | null;
         const glyphs = gsap.utils.toArray<HTMLElement>(".made-glyph", item);
         const copy = gsap.utils.toArray<HTMLElement>(".made-copy-letter", item);
         const arrow = item.querySelector(".made-ext") as HTMLElement | null;
-        const at = index * 0.78;
+        const at = ROWS_AT + index * 0.42;
         glyphs.forEach((glyph, gi) => glitchIn(wave, glyph, NAME_REST, at + gi * 0.018));
         copy.forEach((letter, ci) => glitchIn(wave, letter, COPY_REST, at + 0.12 + ci * 0.008, 0.3));
         if (arrow) {
@@ -279,48 +240,121 @@ export function Made() {
         const n = parseFloat(raw);
         return Number.isFinite(n) ? n : 110;
       };
-      const restWidth = () => Math.max(320, window.innerWidth - edgePx() * 2);
-      const fullWidth = () => window.innerWidth;
 
+      let entered = false;
+      let inside = false;
       const setFull = (on: boolean) => {
+        if (fullRef.current === on) return;
         fullRef.current = on;
         madeEl.classList.toggle("is-full", on);
         if (!on) setOpen(null);
       };
+      const gate = () => setFull(entered && inside);
 
       gsap.matchMedia().add("(min-width: 761px)", () => {
-        setFull(true);
         ScrollTrigger.getById("mable-made-wide")?.kill();
+        ScrollTrigger.getById("mable-made-fire")?.kill();
+        ScrollTrigger.getById("mable-made-inside")?.kill();
 
-        // The framed list stretches edge-to-edge as it scrolls into view.
-        const stretch = gsap.fromTo(
+        // The frame starts as a framed window and opens to fill the viewport.
+        wave.fromTo(
           unitEl,
-          { width: restWidth },
-          {
-            width: fullWidth,
-            ease: "none",
-            scrollTrigger: {
-              id: "mable-made-wide",
-              trigger: madeEl,
-              start: "top 80%",
-              end: "top top",
-              scrub: 0.5,
-              invalidateOnRefresh: true,
-            },
-          },
+          { width: () => Math.max(320, window.innerWidth - edgePx() * 2), height: "78vh", top: "0vh" },
+          { width: () => window.innerWidth, height: "100vh", top: "0vh", duration: 0.85, ease: "power3.inOut", immediateRender: true },
+          0,
         );
+        wave.fromTo(
+          ".made-frame",
+          { borderColor: "#fe63a0" },
+          { borderColor: "#e7c9d4", duration: 0.9, ease: "power1.out", immediateRender: true },
+          0.3,
+        );
+        wave.call(() => {
+          entered = wave.reversed() ? false : true;
+          gate();
+        }, undefined, wave.duration());
+
+        // Services is the layer underneath: it sticks once its "SERVICES" label sits just under the nav,
+        // and the work section slides up over it as a new layer.
+        const sheet = madeEl.closest(".stack-root")?.querySelector<HTMLElement>(".sheet") ?? null;
+        const kicker = sheet?.querySelector<HTMLElement>(".services-kicker") ?? null;
+        const navBottom = () => {
+          const nav = document.querySelector(".nav");
+          return nav ? Math.round(nav.getBoundingClientRect().bottom) + 14 : 84;
+        };
+        const stick = () => {
+          if (!sheet || !kicker) return;
+          // Layout offset (ignores any reveal transforms still running on the heading).
+          let offset = 0;
+          let el: HTMLElement | null = kicker;
+          while (el && el !== sheet) {
+            offset += el.offsetTop;
+            el = el.offsetParent as HTMLElement | null;
+          }
+          if (el !== sheet) offset = kicker.getBoundingClientRect().top - sheet.getBoundingClientRect().top;
+          sheet.style.top = `${navBottom() - offset}px`;
+        };
+        stick();
+        ScrollTrigger.addEventListener("refreshInit", stick);
+        const mountedAt = performance.now();
+
+        // Fire and play: the moment SERVICES reaches the nav, the work frame takes over the screen.
+        const fire = ScrollTrigger.create({
+          id: "mable-made-fire",
+          trigger: kicker ?? madeEl,
+          start: () => (kicker ? `top ${navBottom() + 2}px` : "top 60%"),
+          onEnter: () => {
+            wave.timeScale(1).play();
+            // Fire and play: the section glides up on its own until its top edge locks to the top of the window.
+            // (Skipped for the first moment after load, so a reload that lands past here doesn't yank the page.)
+            if (performance.now() - mountedAt < 1500 || isJumping()) return;
+            const target = Math.round(madeEl.getBoundingClientRect().top + window.scrollY);
+            if (target > window.scrollY + 2) scrollToTarget(target, false, { lock: true, duration: 1.05 });
+          },
+          onLeaveBack: () => {
+            entered = false;
+            gate();
+            wave.timeScale(1.8).reverse();
+          },
+        });
+        // Hovers only wake up once the list fills the whole window (the pinned stretch).
+        const hold = ScrollTrigger.create({
+          id: "mable-made-inside",
+          trigger: madeEl,
+          start: "top top+=2",
+          end: "bottom bottom-=2",
+          onToggle: (self) => {
+            inside = self.isActive;
+            gate();
+          },
+        });
         return () => {
-          stretch.scrollTrigger?.kill();
-          stretch.kill();
+          ScrollTrigger.removeEventListener("refreshInit", stick);
+          if (sheet) sheet.style.top = "";
+          fire.kill();
+          hold.kill();
+          entered = false;
+          inside = false;
           setFull(false);
-          gsap.set(unitEl, { width: "", y: 0 });
+          gsap.set(unitEl, { clearProps: "width,height,top" });
         };
       });
 
       gsap.matchMedia().add("(max-width: 760px)", () => {
-        setFull(true);
-        gsap.set(unitEl, { clearProps: "width,marginLeft,marginRight" });
-        return () => setFull(false);
+        gsap.set(unitEl, { clearProps: "width,height,marginLeft,marginRight" });
+        const fire = ScrollTrigger.create({
+          trigger: listEl,
+          start: "top 86%",
+          onEnter: () => wave.play(),
+          onLeaveBack: () => wave.reverse(),
+        });
+        fullRef.current = true;
+        madeEl.classList.add("is-full");
+        return () => {
+          fire.kill();
+          fullRef.current = false;
+          madeEl.classList.remove("is-full");
+        };
       });
     }, madeEl);
 

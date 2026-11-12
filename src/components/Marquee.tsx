@@ -1,8 +1,9 @@
 import { Fragment, useLayoutEffect, useRef } from "react";
 import star from "../assets/deco/star.webp";
 import { gsap, ScrollTrigger } from "../gsap";
+import { attachTapeGlitter } from "../tapeGlitter";
 
-const WORDS = ["Design x code", "Human made", "No beige", "Brands", "Apps", "Websites", "Weird on purpose"];
+const WORDS = ["Design x code", "Maximal on purpose", "No beige", "Brands", "Apps", "Websites", "Design engineers"];
 
 function Run() {
   return (
@@ -20,6 +21,12 @@ function Run() {
 /** Two crossing tape strips. They idle-scroll, then speed up and skew with scroll velocity. */
 export function Marquee() {
   const root = useRef<HTMLDivElement>(null);
+  const glitter = useRef<HTMLCanvasElement>(null);
+
+  useLayoutEffect(() => {
+    const canvas = glitter.current;
+    return canvas ? attachTapeGlitter(canvas) : undefined;
+  }, []);
 
   useLayoutEffect(() => {
     const host = root.current;
@@ -74,6 +81,7 @@ export function Marquee() {
 
   return (
     <div className="marquee" ref={root} aria-hidden="true">
+      <canvas className="marquee-glitter" ref={glitter} />
       <div className="marquee-band is-pink">
         <div className="marquee-track">
           <Run />

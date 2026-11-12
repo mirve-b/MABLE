@@ -1,0 +1,458 @@
+/* ---------- The phone site: the desktop's sections and look, without the heavy effects ---------- */
+
+html.is-mobile-site {
+  scroll-behavior: smooth;
+}
+
+.ms {
+  overflow-x: clip;
+  min-height: 100vh;
+  background: #000;
+  color: var(--m-text, #f3ecee);
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ms section,
+.ms-process,
+.ms-invite {
+  scroll-margin-top: 76px;
+}
+
+/* ---------- intros: blocks fade up once as they arrive ---------- */
+
+.ms [data-in] {
+  opacity: 0;
+  translate: 0 26px;
+  transition:
+    opacity 0.7s ease,
+    translate 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ms [data-in].is-in {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ---------- hero: pink sky + pixel border ---------- */
+
+.ms-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  min-height: 86svh;
+  padding: 110px 22px 90px;
+  background: linear-gradient(to bottom, #000 0%, #000 34%, #782344 100%);
+  text-align: center;
+}
+
+.ms-hero-title {
+  margin: 0;
+  font-weight: 200;
+  font-size: clamp(24px, 7.6vw, 40px);
+  line-height: 1.08;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fe63a0;
+}
+
+.ms-row {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-bottom: 0.05em;
+}
+
+.ms-ch {
+  display: inline-block;
+  translate: 0 110%;
+  transition: translate 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: calc(var(--i) * 22ms + 120ms);
+}
+
+.ms-gap {
+  display: inline-block;
+  width: 0.3em;
+}
+
+.ms.is-ready .ms-ch {
+  translate: 0 0;
+}
+
+.ms-hero-sub {
+  max-width: 28ch;
+  margin: 0 auto;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #f3b4cf;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.9s;
+}
+
+.ms.is-ready .ms-hero-sub {
+  opacity: 1;
+}
+
+.ms-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  translate: 0 50%;
+  pointer-events: none;
+}
+
+/* ---------- zero: the collage headline among a few still pieces ---------- */
+
+.ms-zero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 92svh;
+  padding: 120px 16px 80px;
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgb(120 35 68 / 0.45), transparent 70%);
+}
+
+.ms-zero .collage-head {
+  z-index: 2;
+}
+
+.ms-zero .collage-row.is-big {
+  font-size: clamp(96px, 34vw, 160px);
+}
+
+/* the same RGB-split glitch as desktop, CSS only */
+.ms-zero .collage-row.is-big::before {
+  animation: glitch-a 3.2s steps(1, end) infinite;
+}
+
+.ms-zero .collage-row.is-big::after {
+  animation: glitch-b 3.2s steps(1, end) infinite;
+}
+
+.ms-zero .collage-tag {
+  z-index: 1;
+  font-size: 10px;
+}
+
+.ms-piece {
+  position: absolute;
+  z-index: 0;
+  height: auto;
+  filter: drop-shadow(0 10px 16px rgb(0 0 0 / 0.55));
+  pointer-events: none;
+}
+
+.ms-piece.is-sticky {
+  left: -4%;
+  top: 30%;
+  width: 26%;
+  rotate: -10deg;
+}
+
+.ms-piece.is-star {
+  right: 8%;
+  top: 34%;
+  width: 11%;
+  rotate: 14deg;
+}
+
+.ms-piece.is-rabbit {
+  left: 6%;
+  bottom: 9%;
+  width: 20%;
+  rotate: 6deg;
+}
+
+.ms-piece.is-lemon {
+  right: 26%;
+  bottom: 4%;
+  width: 18%;
+  rotate: -14deg;
+}
+
+.ms-piece.is-button {
+  left: 46%;
+  top: 17%;
+  width: 9%;
+}
+
+.ms-piece.is-yellow {
+  right: -3%;
+  top: 54%;
+  width: 20%;
+  rotate: 9deg;
+}
+
+/* ---------- about + concept ---------- */
+
+.ms-about {
+  padding: 70px 22px 40px;
+}
+
+.ms-about-box {
+  position: relative;
+  margin: 50px 0 0 14px;
+  padding: 46px 20px 24px;
+  border: 1px solid rgb(236 229 232 / 0.5);
+}
+
+.ms-about-heading {
+  position: absolute;
+  left: -14px;
+  top: 0;
+  width: min(52vw, 210px);
+  height: auto;
+  translate: 0 -62%;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.5));
+}
+
+.ms-about-box p,
+.ms-concept p {
+  margin: 0;
+  font-family: "Avenir Next", Avenir, Outfit, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.ms-concept {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 40px 0 0 14px;
+}
+
+.ms-concept p {
+  align-self: stretch;
+}
+
+.ms-concept .ms-label {
+  align-self: flex-end;
+  margin-bottom: 14px;
+  padding: 3px 18px 2px;
+  background: #d7bdc7;
+  color: #0b0b0b;
+  font-family: Arapey, "Times New Roman", serif;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+.ms-concept .ms-concept-lead {
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- tapes: CSS loop, no canvas ---------- */
+
+.ms-marquee {
+  margin: 30px 0;
+}
+
+.ms-marquee .marquee-track {
+  animation: ms-tape 34s linear infinite;
+  will-change: transform;
+}
+
+.ms-marquee .marquee-band.is-ink .marquee-track {
+  animation-direction: reverse;
+}
+
+@keyframes ms-tape {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- team ---------- */
+
+.ms .ms-team {
+  padding-top: 24px;
+  padding-bottom: 20px;
+}
+
+.ms-section-title {
+  margin: 0 0 18px;
+  font-weight: 200;
+  font-size: clamp(18px, 5.2vw, 28px);
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #fe63a0;
+}
+
+/* ---------- design x code ---------- */
+
+.ms-bill {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: 80px 16px 20px;
+}
+
+.ms-bill-svg {
+  display: block;
+  width: 96%;
+  height: auto;
+}
+
+.ms-bill .ms-bill-card {
+  width: 92%;
+  margin-top: 14px;
+  padding: 18px 20px 16px;
+  border-radius: 22px;
+  background: rgb(10 8 10 / 0.92);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 6px 6px 0 #fe63a0;
+}
+
+/* ---------- services ---------- */
+
+.ms-services {
+  padding: 90px 22px 0;
+}
+
+.ms-services-head {
+  position: relative;
+}
+
+.ms-quite {
+  position: absolute;
+  right: -4px;
+  top: -10px;
+  width: 112px;
+  height: auto;
+  rotate: 8deg;
+}
+
+.ms-services .sv-list {
+  margin-top: 34px;
+}
+
+/* tapping a row lights it the way hover does on desktop */
+.ms .sv-row::after {
+  left: -22px;
+  right: -22px;
+  width: auto;
+  translate: none;
+}
+
+.ms .sv-row:active::after {
+  clip-path: inset(0 0 0 0);
+}
+
+/* ---------- work ---------- */
+
+.ms-work {
+  padding: 90px 22px 0;
+}
+
+.ms-work ul {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgb(243 236 238 / 0.16);
+}
+
+.ms-work li {
+  border-bottom: 1px solid rgb(243 236 238 / 0.16);
+}
+
+.ms-work a {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 20px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ms-work-n {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #6b6467;
+}
+
+.ms-work-name {
+  font-weight: 200;
+  font-size: 30px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.ms-work-line {
+  grid-column: 2;
+  font-size: 13px;
+  color: #8a8487;
+}
+
+.ms-work-arrow {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 24px;
+  color: #fe63a0;
+  animation: ext-glitch 2.6s steps(1, end) infinite;
+}
+
+/* ---------- process / manifesto / invite ---------- */
+
+.ms-process {
+  padding: 90px 0 0;
+}
+
+.ms .weird {
+  margin: 90px 0 0;
+  padding: 0 22px;
+  text-align: left;
+}
+
+.ms .weird .weird-title {
+  font-size: clamp(34px, 10vw, 44px);
+}
+
+.ms-invite .invite {
+  margin-top: 90px;
+}
+
+.ms .ft {
+  margin-top: 100px;
+}
+
+.ms-mark {
+  display: block;
+  aspect-ratio: 12587 / 1962;
+  background: #fe63a0;
+  -webkit-mask: url("./assets/deco/mable.svg") left center / contain no-repeat;
+  mask: url("./assets/deco/mable.svg") left center / contain no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ms [data-in],
+  .ms-ch,
+  .ms-hero-sub {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+
+  .ms-marquee .marquee-track,
+  .ms-work-arrow,
+  .ms-zero .collage-row.is-big::before,
+  .ms-zero .collage-row.is-big::after {
+    animation: none;
+  }
+}

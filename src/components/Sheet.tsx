@@ -1,21 +1,18 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { gsap, playIn } from "../gsap";
 import { MASK_ORDER } from "../grid/masks";
 import { GridSlot } from "./GridSlot";
 import { Made, MadeTape } from "./Made";
 import type { GridPhase } from "./PixelGrid";
-import card1 from "../assets/deco/card-1.webp";
-import card2 from "../assets/deco/card-2.webp";
-import card3 from "../assets/deco/card-3.webp";
-import card4 from "../assets/deco/card-4.webp";
-import howWeWork from "../assets/deco/how-we-work.webp";
-import lemon from "../assets/deco/lemon.webp";
 import quite from "../assets/deco/quite-a-lot.png";
 import star from "../assets/deco/star.webp";
-import workNote from "../assets/deco/work-note.webp";
+import { attachSoWriter, attachStarWriter } from "../soWriter";
 import "../sheet.css";
+import "../process.css";
+import "../footer.css";
+import { SERVICES } from "../content";
+import { Invite, ProcessSection, SiteFooter } from "./Shared";
 
-const PIXELS = ["#FE63A0", "#FFC1DC", "#D7BDC7", "#D9D9D9", "#A3B8C8", "#D5D0AD"];
 
 function FooterMark() {
   const [index, setIndex] = useState(0);
@@ -58,51 +55,40 @@ function FooterMark() {
   );
 }
 
-const STEPS = [
-  { n: "01", title: "Find the thing", face: card1 },
-  { n: "02", title: "Make it a thing", face: card2 },
-  { n: "03", title: "Make it work", face: card3 },
-  { n: "04", title: "Make it yours", face: card4 },
-];
-
-const CARDS = [
-  {
-    title: "Design",
-    meta: "Branding | UI/UX | Art Direction",
-    body: "We shape the look, feel and personality of your idea ... from visual identities and illustrations to interfaces and all the tiny details in between.",
-  },
-  {
-    title: "Development",
-    meta: "Branding | UI/UX | Art Direction",
-    body: "We shape the look, feel and personality of your idea ... from visual identities and illustrations to interfaces and all the tiny details in between.",
-  },
-  {
-    title: "Design",
-    meta: "Branding | UI/UX | Art Direction",
-    body: "We shape the look, feel and personality of your idea ... from visual identities and illustrations to interfaces and all the tiny details in between.",
-  },
-];
-
-function sprinkle(host: HTMLElement, count: number, seed: number) {
-  const bits: HTMLElement[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const bit = document.createElement("span");
-    bit.className = "service-pixel";
-    bit.style.left = `${(i * 37 + seed * 11) % 92}%`;
-    bit.style.top = `${(i * 23 + seed * 13) % 88}%`;
-    bit.style.backgroundColor = PIXELS[(i + seed) % PIXELS.length] ?? "#FE63A0";
-    const size = 6 + (i % 3) * 2;
-    bit.style.width = `${size}px`;
-    bit.style.height = `${size * 0.9}px`;
-    host.appendChild(bit);
-    bits.push(bit);
-  }
-  return bits;
+/** "SO," written in sparkles by a wand as you scroll into Services. */
+function SoScribble() {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    const el = canvas.current;
+    const head = el?.parentElement?.querySelector<HTMLElement>(".services-head");
+    if (!el || !head) return;
+    const stopSo = attachSoWriter(el, head);
+    // Two sparkle stars get drawn over DESIGN X CODE at the same time.
+    const stage = document.querySelector<HTMLElement>(".billboard-stage");
+    const art = stage?.querySelector<HTMLElement>(".billboard-svg");
+    let stopStars = () => {};
+    let starCanvas: HTMLCanvasElement | null = null;
+    if (stage && art) {
+      starCanvas = document.createElement("canvas");
+      starCanvas.className = "billboard-wand";
+      starCanvas.setAttribute("aria-hidden", "true");
+      stage.appendChild(starCanvas);
+      stopStars = attachStarWriter(starCanvas, art, el);
+    }
+    return () => {
+      stopSo();
+      stopStars();
+      starCanvas?.remove();
+    };
+  }, []);
+  return <canvas className="services-so" ref={canvas} aria-hidden="true" />;
 }
+
+
+
 
 export function Sheet() {
   const page = useRef<HTMLDivElement>(null);
-  const [openStep, setOpenStep] = useState(0);
 
   useLayoutEffect(() => {
     const root = page.current;
@@ -155,25 +141,20 @@ export function Sheet() {
         },
       );
 
-      const cards = gsap.utils.toArray<HTMLElement>(".service-card");
-      const cardIn = gsap.timeline({
-        defaults: { ease: "power2.out" },
-        scrollTrigger: playIn(".services", "top 86%"),
+      // Service rows: the rule draws in, then each row rises into place.
+      const rows = gsap.utils.toArray<HTMLElement>(".sv-row");
+      const rowsIn = gsap.timeline({
+        defaults: { ease: "power3.out" },
+        scrollTrigger: playIn(".sv-list", "top 86%"),
       });
-      cards.forEach((card, index) => {
-        const fromX = index === 0 ? -160 : index === 2 ? 160 : 0;
-        const fromY = index === 1 ? 90 : 16;
-        cardIn.fromTo(
-          card,
-          { x: fromX, y: fromY, autoAlpha: 0 },
-          { x: 0, y: 0, autoAlpha: 1, duration: 0.55 },
-          index === 1 ? 0.12 : 0,
+      rows.forEach((row, index) => {
+        rowsIn.fromTo(row, { "--line": 0 }, { "--line": 1, duration: 0.7 }, index * 0.12);
+        rowsIn.fromTo(
+          row.querySelectorAll(".sv-n, .sv-name, .sv-tags"),
+          { y: 26, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.06 },
+          index * 0.12 + 0.1,
         );
-        sprinkle(card, 8, index).forEach((bit, i) => {
-          const at = (index === 1 ? 0.12 : 0) + i * 0.04;
-          cardIn.fromTo(bit, { opacity: 0, scale: 0.35 }, { opacity: 1, scale: 1, duration: 0.08 }, at);
-          cardIn.to(bit, { opacity: 0, duration: 0.1 }, at + 0.14);
-        });
       });
 
       const afterCopy = (scroller?: Element, withProcess = false) => {
@@ -184,7 +165,7 @@ export function Sheet() {
             { y: 0, duration: 0.75, ease: "power2.out", scrollTrigger: playOn(scroller, ".process", "top 84%") },
           );
           gsap.fromTo(
-            ".step",
+            ".pc-step",
             { x: -28, autoAlpha: 0 },
             {
               x: 0,
@@ -251,7 +232,7 @@ export function Sheet() {
           { y: 0, autoAlpha: 1, duration: 0.7, ease: "power2.out", scrollTrigger: playOn(scroller, ".invite") },
         );
         gsap.fromTo(
-          ".invite h2, .invite p, .invite-btn",
+          ".invite h2, .invite p, .invite-btn, .iv-scrap img",
           { y: 18 },
           {
             y: 0,
@@ -261,26 +242,30 @@ export function Sheet() {
             scrollTrigger: playOn(scroller, ".invite", "top 80%"),
           },
         );
+        // Footer: the top band rises in, then the columns, then the colour chips pop one by one.
         gsap.fromTo(
-          ".footer-frame",
-          { y: 36, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.7, ease: "power2.out", scrollTrigger: playOn(scroller, ".footer", "top 88%") },
-        );
-        gsap.fromTo(
-          ".footer-brand, .footer-nav, .footer-ask",
-          { y: 16 },
+          ".ft-top > *, .ft-col",
+          { y: 22, autoAlpha: 0 },
           {
             y: 0,
-            stagger: 0.1,
-            duration: 0.5,
+            autoAlpha: 1,
+            stagger: 0.08,
+            duration: 0.6,
             ease: "power2.out",
-            scrollTrigger: playOn(scroller, ".footer-frame", "top 86%"),
+            scrollTrigger: playOn(scroller, ".ft", "top 85%"),
           },
         );
         gsap.fromTo(
-          ".footer-legal",
-          { y: 12, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.5, ease: "power2.out", scrollTrigger: playOn(scroller, ".footer-legal", "top 96%") },
+          ".ft-chip",
+          { scale: 0.3, autoAlpha: 0 },
+          {
+            scale: 1,
+            autoAlpha: 1,
+            stagger: 0.06,
+            duration: 0.35,
+            ease: "back.out(2.4)",
+            scrollTrigger: playOn(scroller, ".ft-palette", "top 92%"),
+          },
         );
       };
 
@@ -289,7 +274,6 @@ export function Sheet() {
     }, root);
 
     return () => {
-      root.querySelectorAll(".service-pixel").forEach((bit) => bit.remove());
       ctx.revert();
     };
   }, []);
@@ -299,6 +283,7 @@ export function Sheet() {
     <section className="sheet layer-about">
       <div className="sheet-paper">
       <section className="services" id="services">
+        <SoScribble />
         <img className="sheet-star star-services-a" src={star} alt="" />
         <img className="sheet-star star-services-b" src={star} alt="" />
         <img className="sheet-star star-services-c" src={star} alt="" />
@@ -313,18 +298,23 @@ export function Sheet() {
             <img className="services-bubble" src={quite} alt="Quite a lot, actually!" />
           </div>
         </div>
-        <div className="service-cards">
-          {CARDS.map((card, index) => (
-            <article className="service-card" key={index}>
-              <h3 className="service-title">{card.title}</h3>
-              <p className="service-meta">{card.meta}</p>
-              <p className="service-body">{card.body}</p>
-              <button className="service-detail" type="button">
-                Service Detail
-              </button>
-            </article>
+        <ol className="sv-list">
+          {SERVICES.map((service, index) => (
+            <li className="sv-row" key={service.title} style={{ "--tone": service.tone } as CSSProperties}>
+              <span className="sv-n">{String(index + 1).padStart(2, "0")}</span>
+              <h3 className="sv-name">{service.title}</h3>
+              <p className="sv-tags">
+                {service.tags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </p>
+              <a className="sv-go" href={`/contact?need=${service.title}`}>
+                Explore the service <span aria-hidden="true">→</span>
+              </a>
+              <span className="sv-cross" aria-hidden="true" />
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
       </div>
     </section>
@@ -335,41 +325,18 @@ export function Sheet() {
 
     <div className="after-layer layer-after">
       <MadeTape />
-      <section className="process" id="process" aria-label="How we work">
-        <div className="process-deck">
-          {STEPS.map((step, index) => {
-            const open = openStep === index;
-            return (
-              <button
-                key={step.n}
-                type="button"
-                className={open ? "step is-open" : "step"}
-                aria-expanded={open}
-                aria-label={`${step.n} ${step.title}`}
-                onClick={() => setOpenStep(index)}
-              >
-                <img className="step-face" src={step.face} alt="" />
-              </button>
-            );
-          })}
-          <div className="process-folder">
-            <img src={howWeWork} alt="How we work" />
-          </div>
-        </div>
-        <img className="process-lemons" src={lemon} alt="" />
-        <img className="process-note" src={workNote} alt="No mysterious handoffs. Just a collaborative process from first thought to final click." />
-      </section>
+      <ProcessSection />
 
       <section className="weird">
-        <p className="weird-title">We like things with a little weirdness.</p>
+        <p className="weird-title">We’re the new design engineers.</p>
         <p>
+          Artists who code, so what we draw is what gets built.
+          <br />
           Because the internet has enough beige websites.
           <br />
-          Brands should feel like people.
+          Good design takes effort, and it should show.
           <br />
-          Interfaces should feel good to use.
-          <br />
-          And good design doesn’t have to take itself seriously.
+          And more is more, when it’s done right.
         </p>
       </section>
 
@@ -377,58 +344,9 @@ export function Sheet() {
         Explore Our work and process
       </a>
 
-      <section className="invite">
-        <h2>So...got something in mind?</h2>
-        <p>
-          A brand.
-          <br />
-          A website.
-          <br />
-          A strange little idea you’ve been sitting on for six months.
-        </p>
-        <a className="invite-btn" href="/contact">
-          <span className="invite-wide">Let’s work together!!</span>
-          <span className="invite-narrow">Let’s Connect!</span>
-        </a>
-      </section>
+      <Invite />
 
-      <footer className="footer">
-        <div className="footer-frame">
-          <div className="footer-brand">
-            <FooterMark />
-            <p>Design X Code Studio!</p>
-            <div className="footer-dots" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-          </div>
-          <nav className="footer-nav" aria-label="Footer">
-            <p>Navigation</p>
-            <a href="#about">About Us</a>
-            <a href="#work">Work</a>
-            <a href="#services">Services</a>
-            <a href="/contact">Contact</a>
-            <a href="#faq">FAQ</a>
-          </nav>
-          <div className="footer-ask">
-            <p>
-              Have an idea? A project? A beautifully
-              <br />
-              unnecessary website?
-            </p>
-            <p className="footer-ask-sub">Leave us a message and tell us what’s on your mind.</p>
-            <a className="footer-msg" href="/contact">
-              Leave a message
-            </a>
-          </div>
-        </div>
-        <p className="footer-legal">
-          © 2026 Mable Studio
-          <br />
-          still making the internet weirder.
-        </p>
-      </footer>
+      <SiteFooter mark={<FooterMark />} />
     </div>
     </div>
   );

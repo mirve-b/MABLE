@@ -29,9 +29,10 @@ html.lenis body {
 
 .hero {
   position: relative;
-  height: 100vh;
-  height: 100svh;
-  min-height: 560px;
+  /* Shorter than the window: the statement sits closer to the skyline, no dead black stretch. */
+  height: 72vh;
+  height: 72svh;
+  min-height: 460px;
 }
 
 .hero-mark {
@@ -106,6 +107,22 @@ html.lenis body {
   }
 }
 
+/* ---------- sky mirror ----------
+   The hero sky fades black → #782344 over its bottom 38%; this band is its reflection,
+   #782344 → black, sitting under the skyline. The skyline canvas already paints a mirrored
+   lower half — the hero layer (z 2) sits above this band (z 1) so those squares show on it. */
+
+.sky-mirror {
+  position: relative;
+  z-index: 1;
+  height: 16vh;
+  height: 16svh;
+  margin-top: -1px;
+  /* the pink stops softly right at the pixel border's middle */
+  background: linear-gradient(to bottom, #782344 0, rgb(120 35 68 / 0.45) 22px, rgb(120 35 68 / 0.12) 52px, #000000 84px);
+  pointer-events: none;
+}
+
 /* ---------- marquee tapes ---------- */
 
 .marquee {
@@ -113,11 +130,24 @@ html.lenis body {
   z-index: 4;
   display: grid;
   place-items: center;
-  height: clamp(200px, 34vh, 340px);
-  margin-top: -55vh;
+  height: clamp(180px, 28vh, 290px);
+  margin-top: 0;
   margin-bottom: 0;
   overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   background: transparent;
+  pointer-events: none;
+}
+
+/* Glitter behind the tapes; it spills down over the paper edge so there is no hard border. */
+.marquee-glitter {
+  position: absolute;
+  left: 0;
+  top: -110px;
+  z-index: 0;
+  width: 100%;
+  height: calc(100% + 220px);
   pointer-events: none;
 }
 
@@ -125,10 +155,10 @@ html.lenis body {
   grid-area: 1 / 1;
   width: 120vw;
   overflow: hidden;
-  padding: 0.5em 0 0.42em;
+  padding: 0.36em 0 0.3em;
   font-family: "42dot Sans", "Arial Black", sans-serif;
   font-weight: 800;
-  font-size: clamp(26px, 4.2vw, 70px);
+  font-size: clamp(18px, 2.7vw, 44px);
   line-height: 1;
   text-transform: uppercase;
 }
@@ -138,7 +168,7 @@ html.lenis body {
   background: #fe63a0;
   color: #0b0b0b;
   transform: rotate(-3deg);
-  box-shadow: 0 10px 0 #0b0b0b;
+  box-shadow: 0 6px 0 #0b0b0b;
 }
 
 .marquee-band.is-ink {
@@ -190,6 +220,17 @@ html.lenis body {
   background-repeat: repeat-y;
 }
 
+.paper-run::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: clamp(320px, 46vh, 460px);
+  background: linear-gradient(to bottom, #000 0%, #000 30%, rgb(0 0 0 / 0.6) 62%, rgb(0 0 0 / 0) 100%);
+  pointer-events: none;
+}
+
 /* ---------- team: the besties ---------- */
 
 .team-section {
@@ -199,8 +240,9 @@ html.lenis body {
   align-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding: clamp(5rem, 11vh, 7rem) 0 0;
-  overflow: hidden;
+  padding: clamp(6.5rem, 17vh, 11rem) 0 0;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .team-section .team-title {
@@ -214,6 +256,21 @@ html.lenis body {
 .team-section .team-title .hero-line {
   font-size: clamp(28px, 4.6vw, 70px);
   letter-spacing: 0.16em;
+}
+
+.tm-wave {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: calc(100% + 30vh);
+  pointer-events: none;
+}
+
+.team-section > .team-title,
+.team-section > .tm-comp {
+  z-index: 1;
 }
 
 /* One composition box; every piece is placed in % of it, so it holds its shape at any size. */
@@ -389,11 +446,31 @@ html.lenis body {
   height: auto;
 }
 
+.billboard-wand {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .billboard-section.is-still .billboard-stage {
   position: relative;
 }
 
 /* ---------- services / work / after: plain document flow ---------- */
+
+/* "SO," gets written in sparkles in the gap above the Services heading. */
+.services-so {
+  position: absolute;
+  left: calc(-1 * var(--edge));
+  bottom: calc(100% + 4px);
+  z-index: 1;
+  width: calc(100% + 2 * var(--edge));
+  height: clamp(220px, 40vh, 340px);
+  pointer-events: none;
+}
 
 .stack-root .sheet,
 .stack-root .made-layer,
@@ -411,7 +488,7 @@ html.lenis body {
 }
 
 .stack-root .after-layer {
-  background: transparent;
+  background: #000;
 }
 
 .stack-root .sheet {
@@ -422,6 +499,47 @@ html.lenis body {
   height: auto;
   min-height: 70vh;
   padding-bottom: 56px;
+}
+
+/* Work: a pinned stretch where the list fills the whole window, so people can browse the projects. */
+@media (min-width: 761px) {
+  .made {
+    height: 190vh;
+  }
+
+  /* Services is the bottom layer: it sticks (top set in JS) while the work section slides over it. */
+  .stack-root .sheet {
+    position: sticky;
+    z-index: 1;
+  }
+
+  .made .made-unit {
+    position: sticky;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Centred on the page even while wider than its container. */
+    margin: 0 0 0 50%;
+    translate: -50% 0;
+  }
+
+  .made .made-frame {
+    height: 100%;
+    min-height: 0;
+    padding: clamp(64px, 11vh, 110px) clamp(24px, 4vw, 64px) 24px;
+  }
+
+  .made.is-full .made-item:hover .made-gallery,
+  .made.is-full .made-item.is-on .made-gallery {
+    max-height: min(300px, 30vh);
+  }
+
+  .made .made-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 6vh;
+  }
 }
 
 .sheet-paper {
@@ -531,51 +649,146 @@ html.lenis body {
   letter-spacing: 0.02em;
 }
 
+/* invite: a scrapbook spread on plain black, the same paper + stickers as the collage */
 .invite {
   position: relative;
-  max-width: 920px;
-  margin: clamp(90px, 14vh, 160px) auto 0;
-  padding: clamp(52px, 7vw, 88px) clamp(24px, 5vw, 72px) clamp(46px, 6vw, 76px);
-  overflow: hidden;
-  border: 1px solid rgb(254 99 160 / 0.6);
-  border-radius: 24px;
-  background-color: #0b0a0b;
-  background-image: radial-gradient(rgb(254 99 160 / 0.18) 1.5px, transparent 2px);
-  background-size: 22px 22px;
-  color: #f4ecef;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 80px);
+  max-width: 1120px;
+  margin: clamp(100px, 16vh, 180px) auto 0;
+  padding: 0 clamp(24px, 5vw, 64px);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  color: var(--m-text);
 }
 
 .invite h2 {
-  font-family: "42dot Sans", "Arial Black", sans-serif;
-  font-weight: 800;
-  font-size: clamp(30px, 4.6vw, 64px);
-  line-height: 1;
-  letter-spacing: 0;
-  color: #fe63a0;
+  margin: 0;
+  font-family: Outfit, sans-serif;
+  font-weight: 200;
+  font-size: clamp(30px, 4.2vw, 62px);
+  line-height: 1.08;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--m-text);
+}
+
+.invite h2 em {
+  font-style: normal;
+  color: var(--m-hot);
 }
 
 .invite p {
-  font-size: clamp(16px, 1.5vw, 21px);
-  color: #d7bdc7;
+  margin: 26px 0 0;
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.6;
+  color: var(--m-mauve);
 }
 
 .invite-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   margin-top: 34px;
-  padding: 16px 34px 17px;
-  background: #fe63a0;
+  padding: 13px 28px 14px;
+  border-radius: 999px;
+  background: var(--m-hot);
   color: #0b0b0b;
-  font-size: clamp(15px, 1.3vw, 19px);
-  letter-spacing: 0.14em;
+  font-family: Outfit, sans-serif;
+  font-weight: 300;
+  font-size: clamp(14px, 1.1vw, 16px);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  text-decoration: none;
   transition:
-    translate 0.2s ease,
-    box-shadow 0.2s ease;
+    background-color 0.2s ease,
+    translate 0.2s ease;
+}
+
+.invite-btn > span[aria-hidden] {
+  transition: translate 0.25s ease;
 }
 
 .invite-btn:hover {
-  background: #fe63a0;
-  translate: 0 -3px;
-  box-shadow: 0 14px 40px -10px #fe63a0;
+  background: var(--m-baby);
+  translate: 0 -2px;
+  box-shadow: none;
+}
+
+.invite-btn:hover > span[aria-hidden] {
+  translate: 5px 0;
+}
+
+/* the paper pile */
+.iv-scrap {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 0.95;
+  container-type: inline-size;
+}
+
+.iv-scrap img {
+  position: absolute;
+  display: block;
+  height: auto;
+  filter: drop-shadow(0 14px 24px rgb(0 0 0 / 0.6));
+  user-select: none;
+  transition:
+    rotate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    translate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.iv-sticky {
+  right: 0;
+  top: 2%;
+  width: 46%;
+  rotate: 9deg;
+}
+
+.iv-note {
+  left: 2%;
+  top: 10%;
+  width: 84%;
+  rotate: -5deg;
+}
+
+.iv-button {
+  left: 0;
+  bottom: 4%;
+  width: 17%;
+  rotate: -12deg;
+}
+
+.iv-star {
+  right: 6%;
+  bottom: 8%;
+  width: 14%;
+  rotate: 12deg;
+}
+
+.iv-scrap:hover .iv-note {
+  rotate: -2deg;
+  translate: 0 -6px;
+}
+
+.iv-scrap:hover .iv-sticky {
+  rotate: 14deg;
+  translate: 8px -4px;
+}
+
+.iv-scrap:hover .iv-star {
+  rotate: 30deg;
+}
+
+.iv-scrap:focus-visible {
+  outline: 2px solid var(--m-baby);
+  outline-offset: 8px;
 }
 
 /* ---------- phones ---------- */
@@ -604,13 +817,24 @@ html.lenis body {
   }
 
   .marquee {
-    height: 190px;
-    margin-top: -40vh;
+    height: 150px;
+    margin-top: 0;
   }
 
   .invite {
-    margin-left: 16px;
-    margin-right: 16px;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    margin: 90px 0 0;
+    padding: 0 22px;
+  }
+
+  .invite h2 {
+    font-size: clamp(26px, 7.4vw, 36px);
+  }
+
+  .iv-scrap {
+    width: min(100%, 360px);
+    justify-self: center;
   }
 
 
@@ -692,4 +916,311 @@ html.lenis body {
     border-radius: 22px;
   }
 
+}
+
+/* ---------- services: three big words, a few tags each ---------- */
+.sv-list {
+  margin: clamp(48px, 8vh, 88px) 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: Outfit, sans-serif;
+}
+
+.sv-row {
+  --line: 1;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: clamp(36px, 5vw, 72px) minmax(0, 1fr) auto auto clamp(18px, 2vw, 26px);
+  align-items: center;
+  column-gap: clamp(14px, 2.4vw, 36px);
+  padding: clamp(18px, 3vh, 30px) 0;
+}
+
+/* hairline above each row, drawn in on entry */
+.sv-row::before,
+.sv-list::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: rgb(243 236 238 / 0.16);
+  transform: scaleX(var(--line));
+  transform-origin: left;
+}
+
+/* the colour fill: runs edge to edge of the window, wipes open from the middle */
+.sv-row::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  translate: -50% 0;
+  background: var(--tone);
+  clip-path: inset(50% 0 50% 0);
+  transition: clip-path 0.5s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.sv-list {
+  position: relative;
+  container-type: inline-size;
+}
+
+.sv-list::after {
+  top: auto;
+  bottom: 0;
+}
+
+.sv-n {
+  align-self: start;
+  padding-top: 0.9em;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #6b6467;
+  transition: color 0.3s ease;
+}
+
+.sv-name {
+  margin: 0;
+  font-weight: 200;
+  font-size: clamp(40px, 5.6vw, 96px);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #f3ecee;
+  transform-origin: left center;
+  transition:
+    color 0.3s ease,
+    scale 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px 18px;
+  max-width: 300px;
+  margin: 0;
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a8487;
+  transition: color 0.3s ease;
+}
+
+.sv-tags span {
+  white-space: nowrap;
+}
+
+/* the button only takes space once its row is hovered */
+.sv-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 0;
+  margin-left: calc(-1 * clamp(14px, 2.4vw, 36px));
+  overflow: hidden;
+  padding: 12px 0;
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: var(--tone);
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    max-width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    padding 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.sv-go span {
+  transition: translate 0.25s ease;
+}
+
+.sv-go:hover span {
+  translate: 5px 0;
+}
+
+.sv-go:focus-visible {
+  outline: 2px solid #0b0b0b;
+  outline-offset: 3px;
+}
+
+/* the site's cross-stitch pixel, in the row's colour */
+.sv-cross {
+  width: 100%;
+  aspect-ratio: 92 / 82;
+  background-color: var(--tone);
+  -webkit-mask: url("./assets/pixel.svg") center / contain no-repeat;
+  mask: url("./assets/pixel.svg") center / contain no-repeat;
+  opacity: 0.35;
+  transition:
+    background-color 0.3s ease,
+    opacity 0.3s ease,
+    rotate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sv-row:hover::after,
+  .sv-row:focus-within::after {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .sv-row:hover::before,
+  .sv-row:hover + .sv-row::before {
+    opacity: 0;
+  }
+
+  .sv-row:hover .sv-name,
+  .sv-row:focus-within .sv-name {
+    color: #0b0b0b;
+    scale: 1.06;
+  }
+
+  .sv-row:hover .sv-n,
+  .sv-row:hover .sv-tags,
+  .sv-row:focus-within .sv-n,
+  .sv-row:focus-within .sv-tags {
+    color: #0b0b0b;
+  }
+
+  .sv-row:hover .sv-cross,
+  .sv-row:focus-within .sv-cross {
+    background-color: #0b0b0b;
+    opacity: 1;
+    rotate: 90deg;
+  }
+
+  .sv-row:hover .sv-go,
+  .sv-row:focus-within .sv-go {
+    max-width: 280px;
+    margin-left: 0;
+    padding: 12px 22px;
+    opacity: 1;
+  }
+}
+
+/* narrower desktops: no room for tags + button side by side, so the button swaps in where the tags were */
+@media (hover: hover) and (pointer: fine) and (min-width: 761px) {
+  @container (max-width: 1520px) {
+    .sv-row {
+      grid-template-columns: clamp(36px, 5vw, 72px) minmax(0, 1fr) auto clamp(18px, 2vw, 26px);
+    }
+
+    .sv-tags,
+    .sv-go {
+      grid-row: 1;
+      grid-column: 3;
+      justify-self: end;
+    }
+
+    /* gsap's entry animation leaves an inline opacity on the tags, so hide them with a clip instead */
+    .sv-tags {
+      clip-path: inset(-20% -10% -20% -10%);
+      transition:
+        color 0.3s ease,
+        clip-path 0.3s ease,
+        translate 0.35s ease;
+    }
+
+    .sv-go {
+      max-width: none;
+      margin-left: 0;
+      padding: 12px 22px;
+      translate: 0 10px;
+      pointer-events: none;
+      transition:
+        opacity 0.3s ease,
+        translate 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .sv-row:hover .sv-tags,
+    .sv-row:focus-within .sv-tags {
+      clip-path: inset(0 0 100% 0);
+      translate: 0 -10px;
+    }
+
+    .sv-row:hover .sv-go,
+    .sv-row:focus-within .sv-go {
+      translate: 0 0;
+      pointer-events: auto;
+      transition-delay: 0.08s;
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .sv-row {
+    grid-template-columns: 30px minmax(0, 1fr) 16px;
+    grid-template-areas:
+      "n name cross"
+      ". tags tags";
+    row-gap: 10px;
+    padding: 20px 0;
+  }
+
+  .sv-n {
+    grid-area: n;
+    padding-top: 0.6em;
+  }
+
+  .sv-name {
+    grid-area: name;
+    font-size: clamp(26px, 8.4vw, 44px);
+  }
+
+  .sv-tags {
+    grid-area: tags;
+    justify-content: flex-start;
+    max-width: none;
+    gap: 4px 14px;
+    font-size: 11px;
+  }
+
+  .sv-cross {
+    grid-area: cross;
+    opacity: 0.8;
+  }
+
+  .sv-row {
+    grid-template-areas:
+      "n name cross"
+      ". tags tags"
+      ". go go";
+  }
+
+  /* phones: no hover, so the button is always there, small */
+  .sv-go {
+    grid-area: go;
+    justify-self: start;
+    max-width: none;
+    margin: 6px 0 0;
+    padding: 9px 16px;
+    background: none;
+    border: 1px solid var(--tone);
+    font-size: 11px;
+    opacity: 1;
+  }
+
+  /* on a filled row the outlined button flips to ink so it stays visible */
+  .sv-row:hover .sv-go,
+  .sv-row:focus-within .sv-go {
+    max-width: none;
+    margin: 6px 0 0;
+    padding: 9px 16px;
+    border-color: #0b0b0b;
+    background: #0b0b0b;
+    color: var(--tone);
+  }
 }

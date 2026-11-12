@@ -36,7 +36,7 @@ export function introHeight() {
 }
 
 export function shouldPlayIntroSplash() {
-  if (window.location.pathname === "/contact") return false;
+  if (["/contact", "/faq", "/brand"].includes(window.location.pathname)) return false;
   if (!isIntroHash(window.location.hash)) return false;
   const view = peekView();
   if (!view || view.path !== window.location.pathname) return true;

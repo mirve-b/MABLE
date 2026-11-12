@@ -19,15 +19,15 @@
   isolation: isolate;
 }
 
-/* polka dots, fading out behind the headline so the type stays clean */
+/* pixel squares + cross stitches, fading out behind the headline so the type stays clean */
 .collage-stage::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgb(254 99 160 / 0.22) 1.6px, transparent 2.1px);
-  background-size: 28px 28px;
+  background-image: var(--pattern-crosses), var(--pattern-squares);
+  background-size: 224px 196px, 28px 28px;
   -webkit-mask-image: radial-gradient(ellipse 58% 46% at 50% 50%, transparent 30%, #000 100%);
   mask-image: radial-gradient(ellipse 58% 46% at 50% 50%, transparent 30%, #000 100%);
 }
@@ -60,31 +60,79 @@
   filter: drop-shadow(0 12px 22px rgb(0 0 0 / 0.55));
 }
 
-/* clean polka-dot paper: soft pastel card, tiny dots, rounded corners */
-.piece-paper {
+/* the Mable grid marks: cross stitches in the piece's tone; the cursor heats them pink and they burst */
+.motif {
+  position: relative;
   display: block;
-  aspect-ratio: 4 / 5;
-  border-radius: 10px;
-  background-color: var(--paper);
-  background-image: radial-gradient(var(--dot) 1.4px, transparent 1.9px);
-  background-size: 13px 13px;
-  box-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
-  opacity: 0.92;
+  width: 100%;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tone) 35%, transparent));
 }
 
-.piece.is-pink {
-  --paper: #ffc1dc;
-  --dot: rgb(254 99 160 / 0.55);
+.motif-cell {
+  position: absolute;
+  display: block;
+  background-color: color-mix(in srgb, #fe63a0 calc(var(--heat, 0) * 100%), var(--tone, #d7bdc7));
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
 }
 
-.piece.is-blue {
-  --paper: #a3b8c8;
-  --dot: rgb(255 255 255 / 0.6);
+.motif-cell.is-zap {
+  opacity: var(--za, 1);
+  background-color: var(--zap, #fe63a0);
+  transform: translate(var(--zx, 0), var(--zy, 0)) scale(var(--zs, 1));
 }
 
-.piece.is-butter {
-  --paper: #d5d0ad;
-  --dot: rgb(11 11 11 / 0.25);
+.motif-cell.is-glitch:not(.is-zap) {
+  animation: motif-glitch 0.22s steps(2, end);
+}
+
+.motif-cell.is-burst {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: none;
+}
+
+.motif-cell.is-rebuild {
+  transition:
+    opacity 0.26s steps(3, end),
+    transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes motif-glitch {
+  0%,
+  100% {
+    background-color: var(--glitch, #fe63a0);
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.motif-sparks {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.motif-spark {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.motif-spark.is-glint,
+.motif-spark.is-diamond {
+  box-shadow: 0 0 8px color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.motif-spark.is-cross {
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 5px rgb(254 99 160 / 0.55));
 }
 
 .collage-head {
@@ -102,11 +150,12 @@
   color: #ffc1dc;
   font-family: Outfit, sans-serif;
   font-weight: 200;
-  font-size: clamp(18px, 2.3vw, 40px);
-  letter-spacing: 0.6em;
+  font-size: clamp(15px, 1.9vw, 30px);
+  letter-spacing: 0.34em;
   line-height: 1;
   text-transform: uppercase;
-  padding-left: 0.6em;
+  margin-top: 0.7em;
+  padding-left: 0.34em;
 }
 
 .collage-row.is-big {
@@ -118,7 +167,7 @@
   color: #fe63a0;
   font-family: "42dot Sans", "Arial Black", sans-serif;
   font-weight: 800;
-  font-size: clamp(72px, 17vw, 330px);
+  font-size: clamp(64px, 11vw, 200px);
   line-height: 0.86;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -337,12 +386,17 @@
   }
 
   .collage-kicker {
-    letter-spacing: 0.4em;
+    letter-spacing: 0.22em;
+    font-size: 14px;
   }
 
   .collage-note {
-    letter-spacing: 0.18em;
-    padding: 0.7em 1em;
+    max-width: 88vw;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    line-height: 1.5;
+    padding: 0.6em 1.1em;
+    border-radius: 16px;
   }
 
   .collage-stage::before {
@@ -357,4 +411,97 @@
     animation: none;
     opacity: 0.6;
   }
+}
+
+/* ---------- ZERO explosion ---------- */
+
+.collage-flash {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  width: 60vmin;
+  height: 60vmin;
+  margin: -30vmin 0 0 -30vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.9) 0%, rgb(255 193 220 / 0.55) 18%, rgb(254 99 160 / 0.28) 42%, transparent 70%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.collage-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.burst-bit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.burst-core {
+  display: block;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  background-color: var(--c);
+  animation: burst-blink var(--blink) steps(1, end) infinite;
+}
+
+.burst-core.is-square {
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--c) 80%, transparent);
+}
+
+.burst-core.is-diamond {
+  rotate: 45deg;
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--c) 80%, transparent);
+}
+
+.burst-core.is-cross {
+  height: calc(var(--s) * 0.9);
+  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 5px rgb(254 99 160 / 0.8));
+}
+
+.burst-core.is-star {
+  width: calc(var(--s) * 1.6);
+  height: calc(var(--s) * 1.6);
+  margin: calc(var(--s) * -0.8) 0 0 calc(var(--s) * -0.8);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+}
+
+@keyframes burst-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.25;
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burst-core {
+    animation: none;
+  }
+}
+
+/* once it explodes, letters may fly outside their rise-in mask */
+.collage-stage.is-bursting .collage-row.is-big {
+  overflow: visible;
 }

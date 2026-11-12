@@ -1,12 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
-import { PALETTE } from "../grid/colors";
-import { GLOW_INNER, GLOW_STEP } from "../grid/constants";
+import { paintGlitter } from "../glitter";
 import { isCoarsePointer, pixelRatio } from "../perf";
 
-const HOT = "#FE63A0";
-const BABY = "#FFC1DC";
-const DEEP = "#9a2c5a";
+const SPARK = ["#FE63A0", "#FE63A0", "#FFC1DC", "#FFFFFF", "#FF3D8E", "#D7BDC7"] as const;
 
 function pick<T>(items: readonly T[]) {
   return items[Math.floor(Math.random() * items.length)]!;
@@ -14,12 +11,6 @@ function pick<T>(items: readonly T[]) {
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
-}
-
-function hash(x: number, y: number, t: number) {
-  let n = (x * 374761393 + y * 668265263 + t * 1274126177) | 0;
-  n = (n ^ (n >>> 13)) * 1274126177;
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
 }
 
 function sizeCanvas(canvas: HTMLCanvasElement) {
@@ -34,35 +25,23 @@ function sizeCanvas(canvas: HTMLCanvasElement) {
   return dpr;
 }
 
-function paintSquares(canvas: HTMLCanvasElement, amount: number, climb: number, tick: number) {
+function paintSquares(canvas: HTMLCanvasElement, amount: number, climb: number, time: number) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const w = canvas.width;
   const h = canvas.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, w, h);
   if (amount <= 0.02 || h < 2) return;
-
-  const step = GLOW_STEP;
-  const inner = GLOW_INNER;
-  const cols = Math.ceil(w / step);
-  const rows = Math.ceil(h / step);
   const reach = Math.max(0.12, climb);
-
-  for (let row = 0; row < rows; row += 1) {
-    const yFromBottom = rows <= 1 ? 0 : (rows - 1 - row) / (rows - 1);
-    const band = yFromBottom / reach;
-    if (band > 1) continue;
-    const density = amount * Math.pow(1 - band, 1.4);
-
-    for (let col = 0; col < cols; col += 1) {
-      const n = hash(col, row, tick);
-      if (n > density) continue;
-      ctx.globalAlpha = (0.28 + density * 0.72) * (0.55 + n * 0.45);
-      ctx.fillStyle = n < 0.18 ? BABY : n > 0.78 ? DEEP : HOT;
-      ctx.fillRect(col * step, row * step, inner, inner);
-    }
-  }
-  ctx.globalAlpha = 1;
+  paintGlitter(ctx, w, h, {
+    time,
+    density: (row, rows) => {
+      const yFromBottom = rows <= 1 ? 0 : (rows - 1 - row) / (rows - 1);
+      const band = yFromBottom / reach;
+      return band > 1 ? 0 : amount * Math.pow(1 - band, 1.25);
+    },
+  });
 }
 
 export function ScrollGlow() {
@@ -91,11 +70,11 @@ export function ScrollGlow() {
 
     const draw = () => {
       sizeCanvas(glowEl);
-      const tick = reduce || coarse ? 0 : Math.floor(frame / 7);
+      const tick = reduce || coarse ? 0 : performance.now() / 1000;
       paintSquares(glowEl, coarse ? 1 : strength.current, coarse ? 1 : climb.current, tick);
       if (!coarse && bloomCanvas) {
         sizeCanvas(bloomCanvas);
-        paintSquares(bloomCanvas, strength.current, climb.current, tick + 3);
+        paintSquares(bloomCanvas, strength.current, climb.current, tick + 3.7);
       }
     };
 
@@ -177,7 +156,7 @@ export function ScrollGlow() {
         raf = requestAnimationFrame(loop);
         if (strength.current <= 0.02) return;
         frame += 1;
-        if (frame % 7 === 0) draw();
+        if (frame % 2 === 0) draw();
       };
       raf = requestAnimationFrame(loop);
     }
@@ -194,7 +173,7 @@ export function ScrollGlow() {
       bit.style.height = spark ? `${size}px` : `${size * 0.9}px`;
       bit.style.left = `${rand(3, 97)}%`;
       bit.style.bottom = `${rand(4, 18 + amount * 90)}px`;
-      bit.style.backgroundColor = pick(PALETTE);
+      bit.style.backgroundColor = pick(SPARK);
       if (spark && Math.random() < 0.45) bit.style.rotate = "45deg";
       host.appendChild(bit);
 
@@ -216,7 +195,7 @@ export function ScrollGlow() {
       for (let i = 0; i < flashes; i += 1) {
         later(() => {
           if (!bit.isConnected) return;
-          bit.style.backgroundColor = pick(PALETTE);
+          bit.style.backgroundColor = pick(SPARK);
           if (motion.progress() < 0.62) {
             gsap.fromTo(bit, { opacity: 0.15 }, { opacity: 1, duration: 0.06, ease: "steps(1)" });
           }
