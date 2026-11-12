@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { hasFinePointer, hotZone, pointer, prefersReducedMotion, watchPointer } from "../cursorField";
+import { perf } from "../perf";
 
 /** Same sparkle colours as the website's text sparkles. */
 const COLORS = ["#FE63A0", "#FFC1DC", "#D7BDC7", "#D9D9D9", "#D5D0AD"] as const;
-const MAX_LIVE = 110;
+const MAX_LIVE = 80;
+const LITE_MAX = 28;
 
 type Kind = "glint" | "diamond" | "cross";
 
@@ -71,7 +73,7 @@ export function CursorSparkles() {
 
     /** Twinkle in place: pop in, dim, flash a new colour, maybe flicker again, then out — all stepped. */
     const glint = (x: number, y: number, unit: number) => {
-      if (live >= MAX_LIVE) return;
+      if (live >= (perf.lite ? LITE_MAX : MAX_LIVE)) return;
       const kind: Kind = Math.random() < 0.6 ? "glint" : "cross";
       const size = kind === "glint" ? rand(0.3, 0.62) * unit : rand(0.45, 0.9) * unit;
       const el = make(kind, x, y, size);
@@ -99,7 +101,7 @@ export function CursorSparkles() {
 
     /** Tiny glow-sparks drift off a pixel, flashing colours as they go (the website's rising pixels). */
     const spark = (x: number, y: number, unit: number, away: number, heat: number) => {
-      if (live >= MAX_LIVE) return;
+      if (live >= (perf.lite ? LITE_MAX : MAX_LIVE)) return;
       const diamond = Math.random() < 0.45;
       const el = make(diamond ? "diamond" : "glint", x, y, rand(0.24, 0.62) * unit);
       const angle = away + rand(-1.2, 1.2);
@@ -168,8 +170,8 @@ export function CursorSparkles() {
       // More of the logo under the cursor → more sparkle; moving it stirs up extra.
       const moving = now - pointer.movedAt < 140;
       const heat = Math.min(1, count / 40);
-      burstBudget += (5 + heat * 10 + (moving ? 7 : 0)) * dt;
-      glintBudget += (8 + heat * 14 + (moving ? 6 : 0)) * dt;
+      burstBudget += (5 + heat * 10 + (moving ? 7 : 0)) * dt * (perf.lite ? 0.4 : 1);
+      glintBudget += (8 + heat * 14 + (moving ? 6 : 0)) * dt * (perf.lite ? 0.4 : 1);
       while (burstBudget >= 1) {
         burstBudget -= 1;
         burst(heat);

@@ -62,6 +62,9 @@ export function SplashScreen() {
             onLeft={handleLeft}
           />
         </div>
+        <motion.p className="splash-sub" {...chromeFade}>
+          Design × Code by Mirvé
+        </motion.p>
       </div>
 
       <motion.footer className="splash-chrome splash-chrome-bottom" {...chromeFade}>

@@ -1,6 +1,7 @@
 import { useEffect, type RefObject } from "react";
 import { COLS, GRID_WIDTH, CELL_PITCH } from "../grid/constants";
 import { hotZone, pointer, prefersReducedMotion, watchPointer } from "../cursorField";
+import { perf } from "../perf";
 
 const EASE = 0.14;
 const ZAP_COLORS = ["#FE63A0", "#FE63A0", "#FFC1DC", "#A3B8C8", "#D5D0AD", "#D9D9D9", "#FFFFFF"];
@@ -96,6 +97,17 @@ export function usePixelHeat(gridRef: RefObject<HTMLElement | null>) {
           const dy = box.top + c.y * unit - pointer.y;
           target = smooth(1 - Math.hypot(dx, dy) / reach);
         }
+        // Unlit cells are invisible: don't spend style/paint work warming them up.
+        const isOn = cells[i]!.classList.contains("is-on");
+        if (!isOn) {
+          if (zapUntil[i]) unzap(i);
+          if (written[i] !== 0) {
+            written[i] = 0;
+            heat[i] = 0;
+            cells[i]!.style.removeProperty("--heat");
+          }
+          continue;
+        }
         const next = heat[i]! + (target - heat[i]!) * k;
         const h = (heat[i] = Math.abs(next - target) < 0.002 ? target : next);
         if (h !== target) moving = true;
@@ -104,12 +116,12 @@ export function usePixelHeat(gridRef: RefObject<HTMLElement | null>) {
           cells[i]!.style.setProperty("--heat", h.toFixed(3));
         }
 
-        const lit = idle && cells[i]!.classList.contains("is-on");
+        const lit = idle && isOn;
         if (zapUntil[i] && (now >= zapUntil[i]! || !lit)) unzap(i);
         if (!lit || h < 0.3) continue;
         hot.push(cells[i]!);
         // Hotter cells re-roll their glitch more often — the centre of the zone is pure chaos.
-        if (!calm && Math.random() < Math.pow(h, 1.4) * 0.3 * frameScale) zap(i, h, now);
+        if (!calm && Math.random() < Math.pow(h, 1.4) * (perf.lite ? 0.1 : 0.3) * frameScale) zap(i, h, now);
       }
 
       hotZone.cells = hot;

@@ -99,8 +99,8 @@ body {
   top: calc(var(--row) * 10px);
   opacity: 0;
   background-color: var(--pixel);
-  -webkit-mask-image: url("./assets/pixel.svg");
-  mask-image: url("./assets/pixel.svg");
+  -webkit-mask-image: var(--pixel-mask, url("./assets/pixel.svg"));
+  mask-image: var(--pixel-mask, url("./assets/pixel.svg"));
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -121,8 +121,8 @@ body {
   background-color: color-mix(in srgb, #fe63a0 calc(var(--heat, 0) * 100%), var(--pixel));
   /* cross → square: a centred square mask grows with heat and fills the stitch in */
   --sq: clamp(0, calc((var(--heat, 0) - 0.3) * 2.2), 1);
-  -webkit-mask-image: url("./assets/pixel.svg"), linear-gradient(#000, #000);
-  mask-image: url("./assets/pixel.svg"), linear-gradient(#000, #000);
+  -webkit-mask-image: var(--pixel-mask, url("./assets/pixel.svg")), linear-gradient(#000, #000);
+  mask-image: var(--pixel-mask, url("./assets/pixel.svg")), linear-gradient(#000, #000);
   -webkit-mask-size: 100% 100%, calc(var(--sq) * 86%) calc(var(--sq) * 96%);
   mask-size: 100% 100%, calc(var(--sq) * 86%) calc(var(--sq) * 96%);
   -webkit-mask-position: center, center;
@@ -281,8 +281,8 @@ body {
 }
 
 .pixel-spark.is-cross {
-  -webkit-mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
-  mask: url("./assets/pixel.svg") center / 100% 100% no-repeat;
+  -webkit-mask: var(--pixel-mask, url("./assets/pixel.svg")) center / 100% 100% no-repeat;
+  mask: var(--pixel-mask, url("./assets/pixel.svg")) center / 100% 100% no-repeat;
   filter: drop-shadow(0 0 5px rgb(254 99 160 / 0.55));
 }
 
@@ -291,8 +291,8 @@ body {
   width: 100%;
   height: 100%;
   background-color: #a3b8c8;
-  -webkit-mask-image: url("./assets/pixel.svg");
-  mask-image: url("./assets/pixel.svg");
+  -webkit-mask-image: var(--pixel-mask, url("./assets/pixel.svg"));
+  mask-image: var(--pixel-mask, url("./assets/pixel.svg"));
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -399,6 +399,30 @@ body {
   text-align: right;
 }
 
+/* phones: one quiet line under the mark instead of the corner texts */
+.splash-sub {
+  display: none;
+  margin: 18px 0 0;
+  color: var(--tagline);
+  font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .splash-chrome {
+    display: none;
+  }
+
+  .splash-sub {
+    display: block;
+  }
+}
+
 @media (max-width: 720px) {
   .splash-chrome {
     left: 20px;
@@ -422,4 +446,18 @@ body {
   .splash-chrome-bottom {
     bottom: 20px;
   }
+}
+
+/* lite mode (weak machines / slow frames): same look, less glow work */
+html.is-lite .pixel-spark.is-cross {
+  filter: none;
+}
+
+html.is-lite .pixel-spark.is-glint,
+html.is-lite .pixel-spark.is-diamond {
+  box-shadow: none;
+}
+
+html.is-lite .glitch-cursor {
+  filter: drop-shadow(0 0 6px #a3b8c8);
 }
