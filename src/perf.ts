@@ -32,6 +32,13 @@ export function rasterizePixelMask() {
 
 export const perf = { lite: false };
 
+/** Hover effects (heat, zaps, sparks) run only on a real mouse + hover desktop, and never in lite mode. */
+const fineMouse = window.matchMedia("(hover: hover) and (pointer: fine)");
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+export function hoverFxAllowed() {
+  return !perf.lite && fineMouse.matches && !reducedMotion.matches;
+}
+
 function goLite() {
   if (perf.lite) return;
   perf.lite = true;

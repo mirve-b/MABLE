@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from "react";
 import { COLS, GRID_WIDTH, CELL_PITCH } from "../grid/constants";
 import { hotZone, pointer, prefersReducedMotion, watchPointer } from "../cursorField";
-import { perf } from "../perf";
+import { hoverFxAllowed } from "../perf";
 
 const EASE = 0.14;
 const ZAP_COLORS = ["#FE63A0", "#FE63A0", "#FFC1DC", "#A3B8C8", "#D5D0AD", "#D9D9D9", "#FFFFFF"];
@@ -26,7 +26,8 @@ function pick<T>(items: readonly T[]): T {
 export function usePixelHeat(gridRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const grid = gridRef.current;
-    if (!grid) return;
+    // phones, tablets and lite mode: no hover effects at all
+    if (!grid || !hoverFxAllowed()) return;
     const calm = prefersReducedMotion();
     const cells = Array.from(grid.children) as HTMLElement[];
     const heat = new Float32Array(cells.length);
@@ -63,7 +64,19 @@ export function usePixelHeat(gridRef: RefObject<HTMLElement | null>) {
       el.classList.add("is-zap");
     };
 
+    const shutDown = () => {
+      cells.forEach((el, i) => {
+        el.classList.remove("is-zap");
+        if (written[i] !== 0) el.style.removeProperty("--heat");
+      });
+      hotZone.cells = [];
+    };
+
     const frame = (now: number) => {
+      if (!hoverFxAllowed()) {
+        shutDown();
+        return;
+      }
       raf = requestAnimationFrame(frame);
       const dt = Math.min(64, now - last);
       last = now;
@@ -121,7 +134,7 @@ export function usePixelHeat(gridRef: RefObject<HTMLElement | null>) {
         if (!lit || h < 0.3) continue;
         hot.push(cells[i]!);
         // Hotter cells re-roll their glitch more often — the centre of the zone is pure chaos.
-        if (!calm && Math.random() < Math.pow(h, 1.4) * (perf.lite ? 0.1 : 0.3) * frameScale) zap(i, h, now);
+        if (!calm && Math.random() < Math.pow(h, 1.4) * 0.3 * frameScale) zap(i, h, now);
       }
 
       hotZone.cells = hot;
